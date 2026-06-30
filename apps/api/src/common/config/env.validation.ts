@@ -36,7 +36,7 @@ class EnvironmentVariables {
    */
   @IsString()
   @IsOptional()
-  CORS_ORIGIN: string = 'http://localhost:5173';
+  CORS_ORIGIN: string = 'http://localhost:5173,https://acme-cms-pensionbee-web-beta.vercel.app';
 }
 
 export function validateEnv(config: Record<string, unknown>) {
