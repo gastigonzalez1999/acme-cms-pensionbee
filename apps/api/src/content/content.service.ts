@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
@@ -13,6 +13,7 @@ export interface ContentPage {
 
 @Injectable()
 export class ContentService {
+  private readonly logger = new Logger(ContentService.name);
   private readonly templatePath: string;
   /** Cached template string — read once from disk, reused on every request. */
   private cachedTemplate: string | undefined;
@@ -31,6 +32,7 @@ export class ContentService {
           path.join(process.cwd(), '..', '..', 'template.html'),
         ),
     );
+    this.logger.log(`Template path: ${this.templatePath}`);
   }
 
   /**
@@ -38,11 +40,16 @@ export class ContentService {
    * Returns null when the page doesn't exist (→ 404 in controller).
    */
   async getPage(segments: string[]): Promise<ContentPage | null> {
+    const slug = segments.join('/');
     const markdown = await this.source.read(segments);
-    if (markdown === null) return null;
+    if (markdown === null) {
+      this.logger.debug(`Page not found: ${slug}`);
+      return null;
+    }
 
     const { title, html } = renderMarkdown(markdown);
-    return { slug: segments.join('/'), title, html };
+    this.logger.debug(`Rendered page: ${slug} (title="${title}")`);
+    return { slug, title, html };
   }
 
   /**
@@ -65,13 +72,16 @@ export class ContentService {
 
   /** List all available content pages (powers the SPA nav and /api/pages). */
   async listPages(): Promise<string[][]> {
-    return this.source.list();
+    const pages = await this.source.list();
+    this.logger.debug(`Listed ${pages.length} page(s)`);
+    return pages;
   }
 
   /** Lazily read and cache the HTML template from disk. */
   private async loadTemplate(): Promise<string> {
     if (this.cachedTemplate === undefined) {
       this.cachedTemplate = await fs.readFile(this.templatePath, 'utf-8');
+      this.logger.log(`Template loaded and cached from: ${this.templatePath}`);
     }
     return this.cachedTemplate;
   }

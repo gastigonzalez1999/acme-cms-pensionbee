@@ -61,6 +61,11 @@ Structured pre-deployment QA pass: runs all automated tests, probes the live API
 and bugs, then drives the SPA in a real browser via Chrome DevTools MCP.
 See `.claude/skills/qa-sweep/SKILL.md`.
 
+### /mock-interview (project skill)
+Simulates the PensionBee engineering panel interview — 24 questions covering architecture,
+security, testing, production readiness, and process. Runs as a hostile + friendly dual-interviewer.
+See `.claude/skills/mock-interview/SKILL.md`.
+
 ### Global skills usable here
 - **`/qa`** — conversational QA session: describe a bug, agent files a GitHub issue.
 - **`/browser-use`** — drives Chrome via Chrome DevTools MCP (live site verification).
