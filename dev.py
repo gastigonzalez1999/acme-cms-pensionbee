@@ -59,10 +59,10 @@ def check_node() -> None:
     print(f"  ✅  Node.js {result.stdout.strip()}")
 
 
-def ensure_deps(name: str, app_dir: Path) -> None:
-    if not (app_dir / "node_modules").exists():
-        print(f"  📦  Installing {name} dependencies…")
-        subprocess.run(["npm", "install"], cwd=app_dir, check=True, env=os.environ)
+def ensure_deps() -> None:
+    if not (ROOT / "node_modules").exists():
+        print("  📦  Installing dependencies…")
+        subprocess.run(["npm", "install"], cwd=ROOT, check=True, env=os.environ)
 
 
 def stream_output(proc: subprocess.Popen, label: str) -> None:
@@ -87,8 +87,7 @@ def main() -> None:
     print("\n🚀  Starting Acme CMS dev server…\n")
 
     check_node()
-    ensure_deps("api", API_DIR)
-    ensure_deps("web", WEB_DIR)
+    ensure_deps()
 
     print()
 
@@ -121,13 +120,12 @@ def main() -> None:
 
     try:
         # Block until either process exits (usually neither unless there's an error).
-        while True:
-            if api_proc.poll() is not None or web_proc.poll() is not None:
-                break
-            api_proc.wait(timeout=1)
+        while api_proc.poll() is None and web_proc.poll() is None:
+            try:
+                api_proc.wait(timeout=1)
+            except subprocess.TimeoutExpired:
+                pass
     except KeyboardInterrupt:
-        pass
-    except subprocess.TimeoutExpired:
         pass
     finally:
         print("\n🛑  Shutting down…")

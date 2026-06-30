@@ -88,7 +88,7 @@ describe('ContentPage', () => {
     expect(screen.getByText('update')).toBeInTheDocument();
   });
 
-  it('shows 404 when the API call fails', async () => {
+  it('shows an error message when the API call fails (network error)', async () => {
     server.use(
       http.get('/api/content/broken', () => HttpResponse.error()),
     );
@@ -96,7 +96,9 @@ describe('ContentPage', () => {
     renderWithRouter('/broken');
 
     await waitFor(() =>
-      expect(screen.getByText('Page not found')).toBeInTheDocument(),
+      expect(
+        screen.getByText("Couldn't load this page. The API may be unavailable."),
+      ).toBeInTheDocument(),
     );
   });
 });

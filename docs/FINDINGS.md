@@ -22,15 +22,14 @@ The `max-age=60` is intentional for CDN performance. The "immediately" claim is 
 
 ---
 
-### Breadcrumb UX: raw slug segments and intermediate crumbs are 404
+### Breadcrumb UX: raw slug segments
 
 **Where:** `apps/web/src/components/ContentPage.tsx`
 
-- Breadcrumb renders raw slug segments (e.g. `company-update`) while the homepage prettifies with `replace(/-/g, ' ')` — inconsistent UX.
-- Intermediate crumbs (e.g. `/blog`, `/blog/june` for a page at `/blog/june/company-update`) link to paths that have no `index.md` → clicking them yields a 404.
+Breadcrumb renders raw slug segments (e.g. `company-update`) while the homepage prettifies with `replace(/-/g, ' ')` — inconsistent UX.
 
 **Why deferred:**  
-Breadcrumb prettification is cosmetic. The intermediate-crumb 404 is a real UX issue but doesn't affect the brief's requirements. Fix: either disable linking on intermediate crumbs (render as plain text) or check `GET /api/pages` to know which intermediate paths are real pages.
+Breadcrumb prettification is cosmetic. Intermediate crumbs are now non-clickable `<span>` elements (fixed in pre-deploy hardening), eliminating the 404 link issue. Full prettification requires either client-side formatting or a `title` field in the `GET /api/pages` response.
 
 ---
 
@@ -54,13 +53,11 @@ The SPA injects API-returned HTML via `dangerouslySetInnerHTML`. The HTML is san
 
 ---
 
-### Helmet's default CSP may block Swagger at `/docs` in production
+### Helmet's default CSP and Swagger at `/docs` — verified working
 
 **Where:** `apps/api/src/main.ts`
 
-`helmet()` sets a strict `Content-Security-Policy` by default. Swagger UI loads scripts and styles inline, which may be blocked by the default CSP in the Render deployment.
-
-**Fix when it surfaces:** Configure `helmet({ contentSecurityPolicy: false })` (development-style) or add Swagger-specific CSP directives. Verify during the `/qa-sweep` pass.
+Verified during pre-deploy QA: `@nestjs/swagger` serves all UI assets (`swagger-ui-bundle.js`, `swagger-ui-standalone-preset.js`, `swagger-ui-init.js`) as same-origin `<script src>` files with no inline scripts and no `eval()`. Helmet's default `script-src 'self'` policy passes. No CSP change needed.
 
 ---
 
@@ -81,3 +78,55 @@ The SPA injects API-returned HTML via `dangerouslySetInnerHTML`. The HTML is san
 The `{ slug, title, html }` shape is declared twice by hand — once in each app.
 
 **Fix at scale:** A `packages/types` workspace with a single `ContentPage` type, imported by both apps. For two files, the duplication is acceptable; add the package when the contract grows or a third consumer appears.
+
+---
+
+## Additional findings (pre-deploy audit, 2026-06-30)
+
+### `@Slug` decorator does not URL-decode path segments
+
+**Where:** `apps/api/src/content/content.controller.ts:30`
+
+`req.url.slice(prefix.length).split('?')[0].split('/').filter(Boolean)` extracts raw URL segments without calling `decodeURIComponent`. A URL like `/api/content/hello%20world` reaches `list()`/`read()` as `['hello%20world']`, while the filesystem path is `hello world` — they disagree. Only affects non-ASCII or space-containing folder names; all sample content is ASCII.
+
+**Why deferred:** All sample content uses ASCII-safe slugs (kebab-case). Fix: `decodeURIComponent` each segment, then re-guard against decoded `..` and `/` characters before hitting the traversal check. Deferred to avoid re-testing the security boundary before submission.
+
+---
+
+### `list()` is an uncached tree walk; `loadTemplate()` is cached on first read
+
+**Where:** `apps/api/src/content/source.ts` (`list()`), `apps/api/src/content/content.service.ts` (`loadTemplate()`)
+
+Every call to `GET /api/pages` walks the `content/` directory tree from scratch. The template (rarely changed) is cached after the first read. This is the inverse of what you'd cache: page listings change only when marketing adds a folder; the template almost never changes.
+
+**Why deferred:** At this content scale (handful of folders) the tree walk is negligible. The correct scale-up is a `ContentSource` implementation that watches the filesystem (`chokidar`) or caches with a TTL and invalidates on write — a natural next step when the content library grows.
+
+---
+
+### No rate limiting
+
+**Where:** `apps/api/src/main.ts` (bootstrap)
+
+The API has no request-rate protection. A script could hammer `/api/pages` or the content endpoints.
+
+**Fix when needed:** `@nestjs/throttler` — add `ThrottlerModule.forRoot()` in `AppModule` and `@UseGuards(ThrottlerGuard)` on the controller (or globally). Deferred because this is a read-only, no-auth, no-mutation API behind Render's infrastructure; rate limiting adds a dependency and config surface with low payoff at MVP scope.
+
+---
+
+### Render free-tier cold starts
+
+**Where:** `render.yaml` (`plan: free`)
+
+Render's free tier spins down after ~15 minutes of inactivity. The first request after a cold start incurs a 10–30 second startup delay.
+
+**Documented, not fixed:** Acceptable for a demo/assessment. Production fix: upgrade to a paid plan (always-on) or add a cron/uptime ping service (e.g. UptimeRobot) to keep the container warm.
+
+---
+
+### `content/` is baked into the Docker image at build time
+
+**Where:** `apps/api/Dockerfile:45`
+
+`COPY content/ ./content/` means adding a new marketing page requires a container rebuild and redeploy — the "drop a folder, no restart" claim holds only in local dev (where `content/` is a live directory on disk).
+
+**Documented, not fixed:** The `ContentSource` interface exists precisely to make this swappable. The next step is a `CmsContentSource` or `S3ContentSource` that reads from an external store — the controller and service need zero changes. For this assessment scope, baking content into the image is simpler and more predictable than a mounted volume or external store.

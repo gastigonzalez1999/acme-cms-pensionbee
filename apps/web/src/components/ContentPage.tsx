@@ -27,6 +27,7 @@ export default function ContentPage() {
   const [data, setData] = useState<ContentPageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!slug) {
@@ -37,6 +38,7 @@ export default function ContentPage() {
 
     setLoading(true);
     setNotFound(false);
+    setError(false);
     setData(null);
 
     fetch(`${API_BASE}/api/content/${slug}`)
@@ -51,7 +53,7 @@ export default function ContentPage() {
         document.title = `${json.title} — Acme Co.`;
       })
       .catch(() => {
-        setNotFound(true);
+        setError(true);
       })
       .finally(() => setLoading(false));
   }, [slug]);
@@ -64,6 +66,14 @@ export default function ContentPage() {
       >
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <p className="text-red-600 dark:text-red-400">
+        Couldn't load this page. The API may be unavailable.
+      </p>
     );
   }
 
@@ -84,14 +94,9 @@ export default function ContentPage() {
             <li key={i} className="flex items-center gap-1.5">
               <span aria-hidden="true">/</span>
               {i === arr.length - 1 ? (
-                <span className="text-gray-900 dark:text-white font-medium">{part}</span>
+                <span className="text-gray-900 dark:text-white font-medium" aria-current="page">{part}</span>
               ) : (
-                <Link
-                  to={'/' + arr.slice(0, i + 1).join('/')}
-                  className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  {part}
-                </Link>
+                <span>{part}</span>
               )}
             </li>
           ))}
