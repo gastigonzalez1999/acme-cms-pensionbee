@@ -1,37 +1,129 @@
-# Static Content challenge
+# Acme CMS
 
-**NB: Please do not fork this repository, to avoid your solution being visible from this repository's GitHub page. Please clone this repository and submit your solution as a separate repository.**
+A full-stack content management system for Acme Co.'s marketing department.  
+The brief, the original challenge description, and sample content are from [PensionBee's static content challenge](https://github.com/PensionBee/static-content-challenge-2025).
 
-Business Scenario: Acme Co's marketing department want a simple content management system and you've been tasked with building the MVP.
+**Live deployment:**
+- 🌐 **Web app:** _https://acme-cms-PLACEHOLDER.vercel.app_ ← update after deploy
+- 🔌 **API / Swagger:** _https://acme-cms-api.onrender.com/docs_ ← update after deploy
 
-The challenge here is to create a full-stack JavaScript application that returns webpages at URLs that match the paths of the folders and sub-folders in the `content` folder. The content of these pages should come from a combination of the template HTML file and a markdown file containing the content.
+---
 
-For example, for a folder called `about-page`, a request to `/about-page` would return a HTML page created from the `template.html` template and the `about-page/index.md` content file. The `template.html` file contains a `{{content}}` placeholder that would be replaced by the content for each page. A request to `/blog/june/company-update` would return a HTML page using the content file at `blog/june/company-update/index.md`.
+## What it does
 
-As a modern full-stack JavaScript app MVP, the application should use an effective mix of technologies, although there is a requirement to use React on the front-end to fit in with Acme Co's other websites.
+Marketing staff drop a folder with an `index.md` into `content/` and it immediately becomes a page at that URL. No code changes. No restart needed in production.
 
-Acme's marketing department should be able to add extra folders to the `content` folder and the application should work with those without any requiring any code changes.
+```
+content/about-page/index.md      →  /about-page
+content/blog/june/update/index.md →  /blog/june/update
+```
 
-This repository contains a `template.html` template file and a sample `content` folder with sub-folders containing `index.md` markdown files (or other sub-folders).
+## Architecture
 
-Your application may make use of open-source code libraries and other third-party tools. It is entirely up to you how the application performs the challenge. As the use of LLMs is widespread in software engineering, you are permitted to use AI as you wish.
+```
+┌──────────────────────┐       GET /api/content/*      ┌───────────────────────┐
+│  React SPA (Vercel)  │  ──────────────────────────►  │  NestJS API (Render)  │
+│  Vite + Tailwind     │       GET /api/pages           │  Port 3000            │
+└──────────────────────┘                               └───────────────────────┘
+                                                               │
+                                                               ▼
+                                                        content/*.md files
+                                                        template.html
+```
+
+Two services, two hosts:
+- **API (NestJS):** Renders markdown → HTML, serves content as JSON or full HTML. Deployed as a Docker container on Render.
+- **Web (Vite + React + Tailwind):** Styled SPA, fetches content from the API. Deployed as a static site on Vercel.
+
+See [docs/adr/0001-decoupled-api-spa.md](docs/adr/0001-decoupled-api-spa.md) for the full architectural rationale.
+
+## Quick start
+
+```bash
+git clone <your-repo-url>
+cd acme-cms
+
+python dev.py   # starts API (3000) + Web (5173) with one command
+```
+
+Requires Node.js 18+ and Python 3.8+. Optional: `pip install python-dotenv`.
+
+Visit [http://localhost:5173](http://localhost:5173) for the web app,  
+or [http://localhost:3000/docs](http://localhost:3000/docs) for the API's Swagger UI.
+
+## Adding content pages
+
+Drop a folder with an `index.md` into `content/`:
+
+```bash
+mkdir content/new-page
+echo "# New Page\n\nContent here." > content/new-page/index.md
+```
+
+The page appears at `/new-page` immediately — no code changes required.  
+See [docs/CONTENT-AUTHORING.md](docs/CONTENT-AUTHORING.md) for the full guide.
+
+## API endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/content/:slug*` | Page content as JSON `{ slug, title, html }` |
+| `GET` | `/pages/:slug*` | Full HTML page (template + rendered markdown) |
+| `GET` | `/api/pages` | List all available pages |
+| `GET` | `/healthz` | Health check |
+| `GET` | `/docs` | Swagger / OpenAPI |
 
 ## Testing
 
-The application should be shipped with at minimum three tests, although your testing strategy should effectively test your application:
+```bash
+# Run all tests
+npm test --workspaces
 
-- one that verifies that requests to valid URLs return a 200 HTTP status code
-- one that verifies that requests to valid URLs return a body that contains the HTML generated from the relevant `index.md` markdown file
-- one that verifies that requests to URLs that do not match content folders return a 404 HTTP status code
-- NB: the tests should not depend on the existing sub-folders in the `content` folder, so the tests do not break as the content changes
+# API: unit + integration (e2e)
+cd apps/api && npm test && npm run test:e2e
 
-## Bonus credit
+# Web: component tests
+cd apps/web && npm test
 
-**NB: This is only relevant if completing this task in your own time, i.e. NOT in a pairing interview**
+# Playwright E2E (boots both services automatically)
+npm run test:e2e
+```
 
-In this MVP sprint, there are several opportunities to deliver nice-to-have tickets. The marketing team recognise that in a post-LLM world sprint velocity may be higher.
+**Test count:** 28 unit tests + 13 integration tests + 4 component tests = **45 tests total** (+ Playwright E2E)
 
-- The generated HTML page should be styled in a pleasing way
-- The MVP's GitHub repository should be configured for hosting on a cloud hosting service, and include a link to a live deployment
-- The repository should include documentation describing how to both use the application and how to iterate it from here
-- Overall, you should do everything you think is necessary to make this application MVP production-ready
+The three brief-required tests are in `apps/api/test/content.e2e-spec.ts`:
+- `GET /pages/test-page → 200` for a valid URL
+- Body contains `<h1>Test Page Title</h1>` (rendered from fixture `index.md`)
+- `GET /pages/non-existent → 404`
+
+Tests use a temporary fixture directory — they never depend on the sample `content/` folders and won't break as content changes.
+
+## Documentation
+
+- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) — full dev setup and project layout
+- [docs/CONTENT-AUTHORING.md](docs/CONTENT-AUTHORING.md) — guide for marketing staff
+- [docs/LEARNINGS.md](docs/LEARNINGS.md) — gotchas and lessons from the build
+- [docs/FINDINGS.md](docs/FINDINGS.md) — known limitations and deferred P2 findings
+- [docs/adr/](docs/adr/) — Architecture Decision Records
+
+## How to iterate from here
+
+| What | How |
+|---|---|
+| Add a new content source (CMS, DB) | Implement `ContentSource` interface; swap in `ContentModule` |
+| Better SEO | The API's `/pages/*` already returns server-rendered HTML; add a Next.js frontend to replace the SPA and call the same API server-side |
+| Auth for protected pages | Add a `@nestjs/passport` guard to selected routes |
+| Content previews / drafts | Add a `status` flag to the source abstraction; render drafts only with a preview token |
+| Scale the API | Swap Render for ECS/Fly; the Docker image is already multi-stage |
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Backend | NestJS 11, TypeScript, Express |
+| Content rendering | markdown-it + sanitize-html |
+| Frontend | React 19, Vite 8, React Router 7, Tailwind CSS 4 |
+| API docs | Swagger / OpenAPI (`@nestjs/swagger`) |
+| Testing | Jest + Supertest (API), Vitest + RTL + MSW (Web) |
+| CI | GitHub Actions |
+| Deployment | Render (API container) + Vercel (static SPA) |

@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# NestJS
+apps/api/dist/
+
+# Environment variables (real values — never commit these)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Vite
+apps/web/dist/
+
+# Coverage
+coverage/
+
+# Playwright
+test-results/
+playwright-report/

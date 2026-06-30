@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: acme-cms-api
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: CORS_ORIGIN
+        # Set to your Vercel web app URL after deploying.
+        # Using sync:false so Render prompts for the real value instead of
+        # auto-deploying with this placeholder and silently breaking CORS.
+        value: https://YOUR-VERCEL-APP.vercel.app
+        sync: false
+    autoDeploy: true

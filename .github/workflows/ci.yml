@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  api:
+    name: API — typecheck, lint, test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          # The only lockfile is the workspace root package-lock.json
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: apps/api
+        run: npm run typecheck
+
+      - name: Unit tests
+        working-directory: apps/api
+        run: npm test
+
+      - name: Integration (e2e) tests
+        working-directory: apps/api
+        run: npm run test:e2e
+
+      - name: Build
+        working-directory: apps/api
+        run: npm run build
+
+  web:
+    name: Web — typecheck, test, build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit / component tests
+        working-directory: apps/web
+        run: npm test
+
+      - name: Build
+        working-directory: apps/web
+        run: npm run build
+
+  e2e:
+    name: E2E — Playwright
+    runs-on: ubuntu-latest
+    # Build API first; E2E boots the real server.
+    needs: [api, web]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build API
+        working-directory: apps/api
+        run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npm run test:e2e
+        env:
+          # CI=true tells playwright.config.ts not to reuse an existing server.
+          CI: true

@@ -1,12 +1,19 @@
 {
-  "name": "static-content-challenge-2025",
+  "name": "acme-cms",
   "version": "1.0.0",
-  "description": "**NB: Please do not fork this repository, to avoid your solution being visible from this repository's GitHub page. Please clone this repository and submit your solution as a separate repository.**",
-  "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "git@github.com-pensionbee:PensionBee/static-content-challenge-2025.git"
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "python dev.py",
+    "test": "npm run test --workspaces --if-present",
+    "test:e2e": "playwright test",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
   },
-  "author": "PensionBee Limited",
-  "license": "ISC"
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
+  }
 }
