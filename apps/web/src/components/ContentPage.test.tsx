@@ -85,7 +85,7 @@ describe('ContentPage', () => {
     // Breadcrumb items
     expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument();
     expect(screen.getByText('Home')).toBeInTheDocument();
-    expect(screen.getByText('update')).toBeInTheDocument();
+    expect(screen.getByText('Update')).toBeInTheDocument();
   });
 
   it('shows an error message when the API call fails (network error)', async () => {

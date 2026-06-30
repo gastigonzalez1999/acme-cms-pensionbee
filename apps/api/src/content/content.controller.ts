@@ -8,6 +8,7 @@ import {
   createParamDecorator,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 import { ContentService } from './content.service';
 
@@ -37,7 +38,10 @@ function Slug(prefix: string): ParameterDecorator {
 @ApiTags('content')
 @Controller()
 export class ContentController {
-  constructor(private readonly contentService: ContentService) {}
+  constructor(
+    private readonly contentService: ContentService,
+    private readonly config: ConfigService,
+  ) {}
 
   /**
    * GET /api/content/* → JSON { slug, title, html }
@@ -100,5 +104,16 @@ export class ContentController {
       slug: segments.join('/'),
       path: '/' + segments.join('/'),
     }));
+  }
+
+  @Get('sitemap.xml')
+  @ApiOperation({ summary: 'XML sitemap for search engine crawlers' })
+  @ApiResponse({ status: 200, description: 'Sitemap XML', content: { 'application/xml': {} } })
+  async getSitemap(@Res() res: Response): Promise<void> {
+    const webBaseUrl = this.config.get<string>('WEB_BASE_URL', 'http://localhost:5173');
+    const xml = await this.contentService.getSitemapXml(webBaseUrl);
+    res.header('Content-Type', 'application/xml; charset=utf-8');
+    res.header('Cache-Control', 'public, max-age=3600');
+    res.send(xml);
   }
 }

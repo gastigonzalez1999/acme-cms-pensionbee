@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://acme-cms-api.onrender.com/sitemap.xml

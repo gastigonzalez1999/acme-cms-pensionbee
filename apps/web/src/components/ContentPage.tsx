@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import NotFound from './NotFound';
 
+function prettify(slug: string): string {
+  return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 interface ContentPageData {
   slug: string;
   title: string;
@@ -28,6 +32,7 @@ export default function ContentPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!slug) {
@@ -94,9 +99,9 @@ export default function ContentPage() {
             <li key={i} className="flex items-center gap-1.5">
               <span aria-hidden="true">/</span>
               {i === arr.length - 1 ? (
-                <span className="text-gray-900 dark:text-white font-medium" aria-current="page">{part}</span>
+                <span className="text-gray-900 dark:text-white font-medium" aria-current="page">{prettify(part)}</span>
               ) : (
-                <span>{part}</span>
+                <span>{prettify(part)}</span>
               )}
             </li>
           ))}
@@ -108,6 +113,39 @@ export default function ContentPage() {
         className="prose prose-gray dark:prose-invert max-w-none prose-headings:font-semibold prose-a:text-blue-600 dark:prose-a:text-blue-400"
         dangerouslySetInnerHTML={{ __html: data.html }}
       />
+
+      <div className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Share this page</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <a
+            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(data.title)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium bg-black text-white hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+          >
+            𝕏 / Twitter
+          </a>
+          <a
+            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium bg-blue-700 text-white hover:bg-blue-800 transition-colors"
+          >
+            LinkedIn
+          </a>
+          <button
+            onClick={() => {
+              void navigator.clipboard.writeText(window.location.href).then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              });
+            }}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            {copied ? '✓ Copied!' : 'Copy link'}
+          </button>
+        </div>
+      </div>
     </article>
   );
 }

@@ -8,6 +8,7 @@ import { CONTENT_SOURCE, type ContentSource } from './source';
 export interface ContentPage {
   slug: string;
   title: string;
+  description: string;
   html: string;
 }
 
@@ -47,9 +48,9 @@ export class ContentService {
       return null;
     }
 
-    const { title, html } = renderMarkdown(markdown);
+    const { title, description, html } = renderMarkdown(markdown);
     this.logger.debug(`Rendered page: ${slug} (title="${title}")`);
-    return { slug, title, html };
+    return { slug, title, description, html };
   }
 
   /**
@@ -67,6 +68,7 @@ export class ContentService {
     const template = await this.loadTemplate();
     return template
       .replace('{{title}}', () => page.title)
+      .replace('{{description}}', () => page.description)
       .replace('{{content}}', () => page.html);
   }
 
@@ -75,6 +77,16 @@ export class ContentService {
     const pages = await this.source.list();
     this.logger.debug(`Listed ${pages.length} page(s)`);
     return pages;
+  }
+
+  /** Generate a sitemap.xml listing all content pages at the given web base URL. */
+  async getSitemapXml(webBaseUrl: string): Promise<string> {
+    const pages = await this.listPages();
+    const urls = [
+      `  <url><loc>${webBaseUrl}/</loc></url>`,
+      ...pages.map((segs) => `  <url><loc>${webBaseUrl}/${segs.join('/')}</loc></url>`),
+    ].join('\n');
+    return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
   }
 
   /** Lazily read and cache the HTML template from disk. */

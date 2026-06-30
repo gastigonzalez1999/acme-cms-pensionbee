@@ -20,6 +20,7 @@ const md = new MarkdownIt({
 
 export interface RenderedPage {
   title: string;
+  description: string;
   html: string;
 }
 
@@ -43,6 +44,25 @@ export function renderMarkdown(markdown: string): RenderedPage {
         .join('')
         .trim();
       if (text) title = text;
+    }
+  }
+
+  // Extract description from the first non-heading paragraph.
+  let description = '';
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i].type === 'paragraph_open') {
+      const inline = tokens[i + 1];
+      if (inline?.type === 'inline' && inline.children) {
+        const text = inline.children
+          .filter((t) => t.type === 'text' || t.type === 'code_inline')
+          .map((t) => t.content)
+          .join('')
+          .trim();
+        if (text) {
+          description = text.length > 160 ? text.slice(0, 157) + '…' : text;
+          break;
+        }
+      }
     }
   }
 
@@ -80,5 +100,5 @@ export function renderMarkdown(markdown: string): RenderedPage {
     },
   });
 
-  return { title, html };
+  return { title, description, html };
 }
