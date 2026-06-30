@@ -61,10 +61,21 @@ Structured pre-deployment QA pass: runs all automated tests, probes the live API
 and bugs, then drives the SPA in a real browser via Chrome DevTools MCP.
 See `.claude/skills/qa-sweep/SKILL.md`.
 
-### /mock-interview (project skill)
-Simulates the PensionBee engineering panel interview — 24 questions covering architecture,
-security, testing, production readiness, and process. Runs as a hostile + friendly dual-interviewer.
-See `.claude/skills/mock-interview/SKILL.md`.
+### /pr-review (project skill)
+Self-review a branch diff before opening a pull request. Checks correctness, security, test
+coverage, maintainability, and API contracts. Returns Must fix / Should fix / Consider findings
+and a single merge verdict.
+See `.claude/skills/pr-review/SKILL.md`.
+
+### /test-gaps (project skill)
+Analyse a module or file, map every code path, identify untested branches, and write the missing
+tests in the project's existing test style. Reports what was added.
+See `.claude/skills/test-gaps/SKILL.md`.
+
+### /adr (project skill)
+Write an Architecture Decision Record for a technical decision. Prompts for context, alternatives,
+and tradeoffs; writes a concise ADR to `docs/adr/`.
+See `.claude/skills/adr/SKILL.md`.
 
 ### Global skills usable here
 - **`/qa`** — conversational QA session: describe a bug, agent files a GitHub issue.
