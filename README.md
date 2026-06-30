@@ -4,8 +4,8 @@ A full-stack content management system for Acme Co.'s marketing department.
 The brief, the original challenge description, and sample content are from [PensionBee's static content challenge](https://github.com/PensionBee/static-content-challenge-2025).
 
 **Live deployment:**
-- 🌐 **Web app:** _https://acme-cms-PLACEHOLDER.vercel.app_ ← update after deploy
-- 🔌 **API / Swagger:** _https://acme-cms-api.onrender.com/docs_ ← update after deploy
+- 🌐 **Web app:** https://acme-cms-pensionbee-web-beta.vercel.app
+- 🔌 **API / Swagger:** https://acme-cms-api.onrender.com/docs
 
 ---
 
