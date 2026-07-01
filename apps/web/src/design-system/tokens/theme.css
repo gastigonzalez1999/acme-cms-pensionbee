@@ -1,0 +1,101 @@
+/* ============================================================
+   Acme Co. — Semantic theme aliases
+   Maps raw primitives to intent-based tokens. Light is the
+   default; `.dark` on <html> flips the surface + text stack
+   (the app already wires this class before first paint).
+
+   Always build components against these semantic tokens
+   (--text-body, --surface-card, --accent) — never the raw
+   ramps — so dark mode and future re-skins come for free.
+   ============================================================ */
+
+:root {
+  /* --- Surfaces (background layers, back → front) --- */
+  --surface-page:    var(--ink-50);    /* app background */
+  --surface-card:    var(--ink-0);     /* cards, header, panels */
+  --surface-sunken:  var(--ink-100);   /* wells, code blocks, insets */
+  --surface-raised:  var(--ink-0);     /* popovers, dropdowns */
+  --surface-inverse: var(--ink-1000);  /* dark chips on light bg */
+
+  /* --- Text --- */
+  --text-heading:   var(--ink-1000);
+  --text-body:      var(--ink-800);
+  --text-muted:     var(--ink-600);
+  --text-subtle:    var(--ink-500);
+  --text-on-accent: var(--ink-0);
+  --text-inverse:   var(--ink-0);
+
+  /* --- Borders / dividers --- */
+  --border-subtle:  var(--ink-200);
+  --border-default: var(--ink-300);
+  --border-strong:  var(--ink-400);
+
+  /* --- Accent (interactive violet) --- */
+  --accent:         var(--violet-600);
+  --accent-hover:   var(--violet-700);
+  --accent-active:  var(--violet-800);
+  --accent-subtle:  var(--violet-50);
+  --accent-muted:   var(--violet-100);
+  --accent-text:    var(--violet-700);  /* violet text on light — AA */
+  --brand:          var(--violet-500);  /* the vivid mark color */
+
+  /* --- Semantic states --- */
+  --success:        var(--green-600);
+  --success-subtle: var(--green-100);
+  --warning:        var(--amber-600);
+  --warning-subtle: var(--amber-100);
+  --danger:         var(--red-600);
+  --danger-subtle:  var(--red-100);
+  --info:           var(--azure-600);
+  --info-subtle:    var(--azure-100);
+
+  /* --- Component-level --- */
+  --focus-ring:     var(--ring-color);
+  --selection-bg:   var(--violet-200);
+}
+
+.dark {
+  --surface-page:    var(--ink-1000);
+  --surface-card:    var(--ink-950);
+  --surface-sunken:  oklch(0.150 0.014 290);
+  --surface-raised:  var(--ink-900);
+  --surface-inverse: var(--ink-0);
+
+  --text-heading:   var(--ink-50);
+  --text-body:      var(--ink-200);
+  --text-muted:     var(--ink-400);
+  --text-subtle:    var(--ink-500);
+  --text-on-accent: var(--ink-0);
+  --text-inverse:   var(--ink-1000);
+
+  --border-subtle:  oklch(0.290 0.014 290);
+  --border-default: oklch(0.360 0.016 290);
+  --border-strong:  var(--ink-600);
+
+  --accent:         var(--violet-500);
+  --accent-hover:   var(--violet-400);
+  --accent-active:  var(--violet-300);
+  --accent-subtle:  oklch(0.280 0.075 293);
+  --accent-muted:   oklch(0.340 0.100 293);
+  --accent-text:    var(--violet-300);
+  --brand:          var(--violet-400);
+
+  --success:        var(--green-500);
+  --success-subtle: oklch(0.300 0.060 152);
+  --warning:        var(--amber-500);
+  --warning-subtle: oklch(0.340 0.070 68);
+  --danger:         var(--red-500);
+  --danger-subtle:  oklch(0.320 0.080 26);
+  --info:           var(--azure-500);
+  --info-subtle:    oklch(0.320 0.070 248);
+
+  --ring-color:     oklch(0.730 0.180 293 / 0.55);
+  --focus-ring:     var(--ring-color);
+  --selection-bg:   oklch(0.420 0.180 293);
+
+  /* soften elevation on dark — shadows carry less weight */
+  --shadow-sm:  0 1px 3px oklch(0 0 0 / 0.40);
+  --shadow-md:  0 4px 12px -2px oklch(0 0 0 / 0.45);
+  --shadow-lg:  0 12px 28px -6px oklch(0 0 0 / 0.55);
+  --shadow-xl:  0 24px 48px -12px oklch(0 0 0 / 0.65);
+}

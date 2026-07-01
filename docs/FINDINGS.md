@@ -156,3 +156,15 @@ RSS feeds are meaningful when content is published regularly and readers want to
 **Where:** `apps/web/src/components/Layout.tsx`, `apps/web/src/index.css`
 
 Dark mode was previously `prefers-color-scheme` only (no user toggle). Added a class-based toggle with `localStorage` persistence as part of the content-platform polish sprint (2026-07-01). **Rationale:** started with the system default, which is correct for an MVP; added the toggle when rounding out the content-platform feature set.
+
+---
+
+## Additional findings (design-system adoption, 2026-07-01)
+
+### Webfonts load from Google Fonts at runtime
+
+**Where:** `apps/web/src/design-system/tokens/fonts.css`
+
+The editorial type trio (Newsreader, Public Sans, IBM Plex Mono) loads via a Google Fonts `@import`, an external network dependency and a render-blocking request on first paint.
+
+**Why deferred:** Acceptable for a demo/assessment; the fonts have generous fallback stacks (`Georgia`, `system-ui`, `Menlo`) so the page is never unusably unstyled if the CDN is unreachable. **Fix for production:** self-host the `.woff2` binaries under `apps/web/public/fonts/` and replace the `@import` with local `@font-face` rules — the tokens file's own header comment already documents this as the intended next step.

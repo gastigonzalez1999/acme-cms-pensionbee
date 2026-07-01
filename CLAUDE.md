@@ -5,7 +5,7 @@
 Full-stack JavaScript content management system for Acme Co.'s marketing department.
 
 - **Backend**: NestJS + TypeScript (port 3000, Swagger at `/docs`)
-- **Frontend**: Vite + React + TypeScript + Tailwind CSS (port 5173)
+- **Frontend**: Vite + React + TypeScript, styled with a custom design system (`apps/web/src/design-system/`) — CSS-variable tokens + typed React components, no Tailwind (port 5173)
 - **Content**: Markdown files in `content/` at the repo root; `template.html` alongside them. Files may carry YAML front-matter (`gray-matter` in `render.ts`) for `date`, `author`, `tags`, `description`, and `readingTime`. API also serves `/rss.xml` and `/sitemap.xml`.
 
 ## Key commands

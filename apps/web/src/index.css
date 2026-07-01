@@ -1,12 +1,47 @@
-@import "tailwindcss";
-@plugin "@tailwindcss/typography";
+@import "./design-system/styles.css";
 
 /*
- * Class-based dark mode so the ThemeToggle button can switch the theme
- * independently of prefers-color-scheme.  The inline script in index.html
- * reads localStorage.theme (or falls back to the OS preference) and adds
- * the .dark class to <html> before first paint — no flash.
- *
- * @custom-variant dark is the Tailwind v4 equivalent of darkMode: 'class'.
+ * Dark mode: the inline script in index.html reads localStorage.theme (or
+ * falls back to the OS preference) and adds the .dark class to <html>
+ * before first paint — no flash. design-system/tokens/theme.css flips every
+ * semantic token when that class is present, so no extra wiring is needed
+ * here.
  */
-@custom-variant dark (&:where(.dark, .dark *));
+
+/* Skip-to-content link: visually hidden until keyboard-focused. */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-4);
+  z-index: var(--z-toast);
+  padding: var(--space-2) var(--space-4);
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: var(--space-4);
+}
+
+/*
+ * Home page grids: inline `style` can't express a media query, so the
+ * responsive column collapse lives here. Single column below 640px so the
+ * featured card and content grid don't get squeezed into unreadable slivers
+ * on mobile.
+ */
+.home-featured-grid {
+  grid-template-columns: 1.15fr 1fr;
+}
+.home-content-grid {
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 640px) {
+  .home-featured-grid,
+  .home-content-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -25,7 +25,7 @@ content/blog/june/update/index.md →  /blog/june/update
 ```
 ┌──────────────────────┐       GET /api/content/*      ┌───────────────────────┐
 │  React SPA (Vercel)  │  ──────────────────────────►  │  NestJS API (Render)  │
-│  Vite + Tailwind     │       GET /api/pages           │  Port 3000            │
+│  Vite + React        │       GET /api/pages           │  Port 3000            │
 └──────────────────────┘                               └───────────────────────┘
                                                                │
                                                                ▼
@@ -35,7 +35,7 @@ content/blog/june/update/index.md →  /blog/june/update
 
 Two services, two hosts:
 - **API (NestJS):** Renders markdown → HTML, serves content as JSON or full HTML. Deployed as a Docker container on Render.
-- **Web (Vite + React + Tailwind):** Styled SPA, fetches content from the API. Deployed as a static site on Vercel.
+- **Web (Vite + React):** Styled SPA built on an in-house editorial design system (`apps/web/src/design-system/`), fetches content from the API. Deployed as a static site on Vercel.
 
 See [docs/adr/0001-decoupled-api-spa.md](docs/adr/0001-decoupled-api-spa.md) for the full architectural rationale.
 
@@ -126,7 +126,7 @@ Tests use a temporary fixture directory — they never depend on the sample `con
 |---|---|
 | Backend | NestJS 11, TypeScript, Express |
 | Content rendering | markdown-it + sanitize-html |
-| Frontend | React 19, Vite 8, React Router 7, Tailwind CSS 4 |
+| Frontend | React 19, Vite 8, React Router 7, custom design system (CSS tokens, no framework) |
 | API docs | Swagger / OpenAPI (`@nestjs/swagger`) |
 | Testing | Jest + Supertest (API), Vitest + RTL + MSW (Web) |
 | CI | GitHub Actions |

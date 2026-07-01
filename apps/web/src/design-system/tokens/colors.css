@@ -1,0 +1,62 @@
+/* ============================================================
+   Acme Co. — Color primitives
+   Raw, theme-agnostic color ramps. Semantic aliases that flip
+   between light/dark live in tokens/theme.css.
+
+   The brand mark is a vivid violet (#863bff, the Acme arrow).
+   Neutrals carry a faint violet undertone (hue 290) so ink and
+   paper feel of a piece with the accent — an editorial "smoke"
+   gray, never a cold Tailwind slate.
+   ============================================================ */
+
+:root {
+  /* --- Violet — primary / brand accent --- */
+  --violet-50:  oklch(0.977 0.012 293);
+  --violet-100: oklch(0.951 0.030 293);
+  --violet-200: oklch(0.902 0.062 293);
+  --violet-300: oklch(0.830 0.112 293);
+  --violet-400: oklch(0.730 0.180 293);
+  --violet-500: oklch(0.630 0.243 293); /* #863bff — brand mark */
+  --violet-600: oklch(0.560 0.255 293);
+  --violet-700: oklch(0.485 0.222 293);
+  --violet-800: oklch(0.420 0.180 293);
+  --violet-900: oklch(0.365 0.145 293);
+  --violet-950: oklch(0.275 0.110 293);
+
+  /* --- Ink — neutrals with a faint violet cast (hue 290) --- */
+  --ink-0:    oklch(0.994 0.002 290); /* paper white */
+  --ink-50:   oklch(0.980 0.004 290);
+  --ink-100:  oklch(0.965 0.006 290);
+  --ink-150:  oklch(0.945 0.007 290);
+  --ink-200:  oklch(0.920 0.008 290);
+  --ink-300:  oklch(0.872 0.010 290);
+  --ink-400:  oklch(0.720 0.013 290);
+  --ink-500:  oklch(0.600 0.015 290);
+  --ink-600:  oklch(0.500 0.017 290);
+  --ink-700:  oklch(0.408 0.017 290);
+  --ink-800:  oklch(0.308 0.017 290);
+  --ink-900:  oklch(0.228 0.016 290);
+  --ink-950:  oklch(0.172 0.015 290);
+  --ink-1000: oklch(0.130 0.013 290); /* near-black ink */
+
+  /* --- Semantic hues (raw ramps; used by theme.css) --- */
+  --green-100: oklch(0.945 0.045 155);
+  --green-500: oklch(0.640 0.150 152);
+  --green-600: oklch(0.560 0.140 152);
+  --green-700: oklch(0.470 0.115 152);
+
+  --amber-100: oklch(0.960 0.050 85);
+  --amber-500: oklch(0.780 0.150 75);
+  --amber-600: oklch(0.700 0.150 68);
+  --amber-700: oklch(0.560 0.130 62);
+
+  --red-100: oklch(0.945 0.035 25);
+  --red-500: oklch(0.605 0.208 25);
+  --red-600: oklch(0.540 0.210 26);
+  --red-700: oklch(0.470 0.190 27);
+
+  --azure-100: oklch(0.950 0.035 245);
+  --azure-500: oklch(0.620 0.160 245);
+  --azure-600: oklch(0.540 0.160 248);
+  --azure-700: oklch(0.470 0.140 250);
+}

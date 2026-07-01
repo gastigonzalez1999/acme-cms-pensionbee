@@ -1,0 +1,13 @@
+/* ============================================================
+   Acme Co. — Design system entry point
+   Import order matters: fonts/colors/typography/spacing/effects
+   are primitives; theme.css maps them to semantic aliases; base.css
+   applies those aliases to bare HTML + the editorial .prose style.
+   ============================================================ */
+@import "./tokens/fonts.css";
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/spacing.css";
+@import "./tokens/effects.css";
+@import "./tokens/theme.css";
+@import "./tokens/base.css";

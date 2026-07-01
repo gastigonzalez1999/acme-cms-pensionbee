@@ -1,0 +1,57 @@
+/* ============================================================
+   Acme Co. — Typography primitives
+
+   An editorial trio:
+   - Newsreader   — display & long-form reading (article titles,
+                    hero headlines, and the prose body). A warm,
+                    high-contrast text serif built for the screen.
+   - Public Sans  — interface & chrome (nav, buttons, cards, meta).
+                    Neutral, professional, US-gov design-system sans.
+   - IBM Plex Mono — eyebrows, labels, meta lines, code. A technical
+                    nod to Acme's industrial roots.
+
+   Original app shipped system-ui defaults; this trio is the
+   intentional replacement. Fonts load from Google Fonts (see
+   fonts.css). Substitute with self-hosted binaries for production.
+   ============================================================ */
+
+:root {
+  /* --- Families --- */
+  --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-sans:  "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:  "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* --- Type scale — 17px editorial base, ~1.24 ratio, display jumps --- */
+  --text-2xs:  0.6875rem;  /* 11px — micro labels */
+  --text-xs:   0.75rem;    /* 12px */
+  --text-sm:   0.8125rem;  /* 13px */
+  --text-ui:   0.875rem;   /* 14px — default interface text */
+  --text-base: 1.0625rem;  /* 17px — reading body */
+  --text-lg:   1.1875rem;  /* 19px */
+  --text-xl:   1.375rem;   /* 22px */
+  --text-2xl:  1.75rem;    /* 28px */
+  --text-3xl:  2.1875rem;  /* 35px */
+  --text-4xl:  2.75rem;    /* 44px */
+  --text-5xl:  3.5rem;     /* 56px */
+  --text-6xl:  4.5rem;     /* 72px — hero display */
+
+  /* --- Weights --- */
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  /* --- Line heights --- */
+  --leading-none:    1;
+  --leading-tight:   1.15;
+  --leading-snug:    1.3;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.7;   /* long-form prose */
+
+  /* --- Letter spacing --- */
+  --tracking-tighter: -0.02em;
+  --tracking-tight:   -0.011em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.02em;
+  --tracking-label:   0.08em;  /* mono eyebrows / all-caps labels */
+}

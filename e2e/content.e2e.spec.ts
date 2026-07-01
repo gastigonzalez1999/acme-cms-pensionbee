@@ -17,7 +17,8 @@ test.describe('Home page', () => {
     await page.goto('/');
     // The home page fetches /api/pages and renders a list of links.
     // about-page is always present in the sample content/ folder.
-    await expect(page.getByRole('link', { name: /about/i })).toBeVisible();
+    // Scoped to <main> to avoid matching the header's "About" nav link.
+    await expect(page.getByRole('main').getByRole('link', { name: /about/i })).toBeVisible();
   });
 });
 
@@ -44,7 +45,7 @@ test.describe('Content pages', () => {
 
   test('prose styling is applied to content', async ({ page }) => {
     await page.goto('/about-page');
-    // Tailwind @tailwindcss/typography adds the .prose class around content
+    // The design system's editorial .prose style wraps the rendered content
     await expect(page.locator('.prose')).toBeVisible();
   });
 });

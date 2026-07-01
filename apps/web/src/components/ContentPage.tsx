@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import NotFound from './NotFound';
 import { setPageMeta } from '../lib/seo';
+import { Breadcrumb } from '../design-system/components/content/Breadcrumb';
+import { ArticleMeta } from '../design-system/components/content/ArticleMeta';
+import { ShareBar } from '../design-system/components/content/ShareBar';
+import { Tag } from '../design-system/components/core/Tag';
+import { Button } from '../design-system/components/core/Button';
+import { Spinner } from '../design-system/components/feedback/Spinner';
+import { Alert } from '../design-system/components/feedback/Alert';
 
 function prettify(slug: string): string {
   return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
@@ -33,21 +40,21 @@ function formatDate(iso: string): string {
  * Catch-all page component.
  *
  * Fetches content from GET /api/content/<slug> and renders the returned HTML
- * fragment inside the Tailwind `prose` class — which produces clean, readable
- * typography for the marketing content without any custom CSS.
+ * fragment inside the design system's `.prose` class — the editorial reading
+ * style defined in design-system/tokens/base.css.
  *
  * Security note: the HTML is sanitized server-side by sanitize-html before
  * being returned from the API; dangerouslySetInnerHTML is safe here.
  */
 export default function ContentPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const slug = location.pathname.replace(/^\//, '').replace(/\/$/, '');
 
   const [data, setData] = useState<ContentPageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!slug) {
@@ -99,106 +106,64 @@ export default function ContentPage() {
 
   if (loading) {
     return (
-      <div
-        className="flex items-center justify-center py-24"
-        aria-label="Loading content"
-      >
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-16) 0' }}>
+        <Spinner label="Loading content" size="lg" />
       </div>
     );
   }
 
   if (error) {
-    return (
-      <p className="text-red-600 dark:text-red-400">
-        Couldn't load this page. The API may be unavailable.
-      </p>
-    );
+    return <Alert tone="danger">Couldn't load this page. The API may be unavailable.</Alert>;
   }
 
   if (notFound) return <NotFound />;
 
   if (!data) return null;
 
-  const metaParts: string[] = [];
-  if (data.author) metaParts.push(data.author);
-  if (data.date) metaParts.push(formatDate(data.date));
-  if (data.readingTime) metaParts.push(`${data.readingTime} min read`);
+  const crumbs = [
+    { label: 'Home', href: '/' },
+    ...data.slug.split('/').map((part, i, arr) => ({
+      // Only "Home" is clickable — intermediate path segments have no page of
+      // their own (no index.md), and the terminal crumb is the current page.
+      label: i === arr.length - 1 ? data.title : prettify(part),
+    })),
+  ];
 
   return (
     <article>
-      <nav aria-label="Breadcrumb" className="mb-6">
-        <ol className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
-          <li>
-            <Link to="/" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-              Home
-            </Link>
-          </li>
-          {data.slug.split('/').map((part, i, arr) => (
-            <li key={i} className="flex items-center gap-1.5">
-              <span aria-hidden="true">/</span>
-              {i === arr.length - 1 ? (
-                // Use the real page title for the terminal crumb so the visual
-                // breadcrumb matches the <h1> (not just a prettified slug).
-                <span className="text-gray-900 dark:text-white font-medium" aria-current="page">{data.title}</span>
-              ) : (
-                <span>{prettify(part)}</span>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
+      <Breadcrumb items={crumbs} style={{ marginBottom: 'var(--space-8)' }} />
 
-      {/* Author · date · reading time — shown only when front-matter provides them */}
-      {metaParts.length > 0 && (
-        <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
-          {metaParts.join(' · ')}
-        </p>
-      )}
+      <span className="eyebrow">{prettify(data.slug.split('/')[0])}</span>
 
-      {/*
-        prose: Tailwind Typography's opinionated, beautiful markdown styles.
-        overflow-x wrapper: prevents wide tables / code blocks / long URLs
-        from breaking the mobile layout — they scroll inside their container.
-      */}
-      <div className="overflow-x-auto">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-5)', marginTop: 'var(--space-4)', flexWrap: 'wrap' }}>
+        <ArticleMeta
+          author={data.author}
+          date={data.date ? formatDate(data.date) : undefined}
+          readingTime={data.readingTime}
+        />
+        {data.tags && data.tags.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {data.tags.slice(0, 3).map((t) => <Tag key={t}>{t}</Tag>)}
+          </div>
+        )}
+      </div>
+
+      {/* overflow-x wrapper: prevents wide tables / code blocks / long URLs
+          from breaking the mobile layout — they scroll inside their container. */}
+      <div style={{ overflowX: 'auto' }}>
         <div
-          className="prose prose-gray dark:prose-invert max-w-none prose-headings:font-semibold prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-pre:overflow-x-auto prose-img:max-w-full break-words"
+          className="prose prose--lead"
+          style={{ marginTop: 'var(--space-8)' }}
           dangerouslySetInnerHTML={{ __html: data.html }}
         />
       </div>
 
-      <div className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Share this page</p>
-        <div className="flex flex-wrap items-center gap-3">
-          <a
-            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(data.title)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium bg-black text-white hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
-          >
-            𝕏 / Twitter
-          </a>
-          <a
-            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium bg-blue-700 text-white hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
-          >
-            LinkedIn
-          </a>
-          <button
-            onClick={() => {
-              void navigator.clipboard.writeText(window.location.href).then(() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              });
-            }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          >
-            {copied ? '✓ Copied!' : 'Copy link'}
-          </button>
-        </div>
+      <div style={{ marginTop: 'var(--space-12)', paddingTop: 'var(--space-6)', borderTop: '1px solid var(--border-subtle)' }}>
+        <ShareBar url={window.location.href} title={data.title} />
+      </div>
+
+      <div style={{ marginTop: 'var(--space-10)' }}>
+        <Button variant="ghost" icon="arrow-left" onClick={() => navigate('/')}>Back to all content</Button>
       </div>
     </article>
   );
