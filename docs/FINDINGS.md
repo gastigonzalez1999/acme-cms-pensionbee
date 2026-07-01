@@ -1,7 +1,7 @@
 # Known Limitations & Deferred Findings
 
 Findings from the pre-submission code review that were deliberately deferred.  
-Not bugs blocking correctness — conscious tradeoffs, documented for the interview and for future iterations.
+Not bugs blocking correctness — conscious tradeoffs, documented for future iterations.
 
 ---
 
@@ -147,7 +147,7 @@ Render's free tier spins down after ~15 minutes of inactivity. The first request
 
 RSS feeds are meaningful when content is published regularly and readers want to subscribe. At 4 pages with no publication cadence, it's infrastructure ahead of the need. Reading time is useful on long articles; short marketing blurbs (~50 words) show "1 min read" which adds noise.
 
-**Why built anyway:** (a) the blog section explicitly signals intent to grow; (b) RSS is a standard web citizen feature with near-zero implementation cost (hand-built XML, no dependency); (c) reading time adds zero runtime cost and creates the ground for future longer-form content. **Defensible in interview:** we built the *capability* (front-matter parsing, the RSS endpoint) to match where the content is headed, not where it is today.
+**Why built anyway:** (a) the blog section explicitly signals intent to grow; (b) RSS is a standard web citizen feature with near-zero implementation cost (hand-built XML, no dependency); (c) reading time adds zero runtime cost and creates the ground for future longer-form content. **Rationale:** we built the *capability* (front-matter parsing, the RSS endpoint) to match where the content is headed, not where it is today.
 
 ---
 
@@ -155,4 +155,4 @@ RSS feeds are meaningful when content is published regularly and readers want to
 
 **Where:** `apps/web/src/components/Layout.tsx`, `apps/web/src/index.css`
 
-Dark mode was previously `prefers-color-scheme` only (no user toggle). Added a class-based toggle with `localStorage` persistence as part of the content-platform polish sprint (2026-07-01). Interview answer if asked: "started with the system default, which is correct for an MVP; added the toggle when we were rounding out the content-platform feature set."
+Dark mode was previously `prefers-color-scheme` only (no user toggle). Added a class-based toggle with `localStorage` persistence as part of the content-platform polish sprint (2026-07-01). **Rationale:** started with the system default, which is correct for an MVP; added the toggle when rounding out the content-platform feature set.

@@ -6,7 +6,7 @@ Full-stack JavaScript content management system for Acme Co.'s marketing departm
 
 - **Backend**: NestJS + TypeScript (port 3000, Swagger at `/docs`)
 - **Frontend**: Vite + React + TypeScript + Tailwind CSS (port 5173)
-- **Content**: Markdown files in `content/` at the repo root; `template.html` alongside them
+- **Content**: Markdown files in `content/` at the repo root; `template.html` alongside them. Files may carry YAML front-matter (`gray-matter` in `render.ts`) for `date`, `author`, `tags`, `description`, and `readingTime`. API also serves `/rss.xml` and `/sitemap.xml`.
 
 ## Key commands
 
@@ -35,7 +35,7 @@ npm run dev                # Vite dev server
 │   ├── about-page/
 │   │   └── index.md
 │   └── ...
-├── template.html          # page shell with {{title}} and {{content}} placeholders
+├── template.html          # page shell with six placeholders (title, description, content, structuredData, url, image)
 ├── e2e/                   # Playwright end-to-end specs (boots API + web)
 │   └── content.e2e.spec.ts
 ├── playwright.config.ts   # Playwright configuration
@@ -103,6 +103,7 @@ Copy `.env.example` to `.env` in the repo root (or set vars in your shell):
 | `CONTENT_DIR` | `../../content` | Absolute or relative to `apps/api/` |
 | `TEMPLATE_PATH` | `../../template.html` | Same relative base |
 | `CORS_ORIGIN` | `http://localhost:5173` | Comma-separated in production |
+| `WEB_BASE_URL` | `http://localhost:5173` | Used for absolute URLs in RSS, sitemap, and JSON-LD — set to the Vercel URL on Render |
 | `VITE_API_BASE_URL` | `` (empty = same origin proxy) | Set to Render URL in Vercel |
 
 ## NestJS gotchas (don't repeat these)
@@ -133,11 +134,15 @@ Integration (e2e) tests never touch the sample `content/` folder:
 
 ## Template placeholders
 
-`template.html` contains two placeholders:
-- `{{title}}` — replaced with the page's H1 heading (or "Welcome to Acme" fallback)
-- `{{content}}` — replaced with the sanitized HTML rendered from `index.md`
+`template.html` contains six placeholders, all substituted in `content.service.ts`:
+- `{{title}}` — page H1 heading (HTML-escaped; fallback "Welcome to Acme")
+- `{{description}}` — front-matter description or first-paragraph extraction (HTML-escaped)
+- `{{content}}` — sanitized HTML rendered from `index.md` (already safe, inserted raw)
+- `{{structuredData}}` — JSON-LD graph (Unicode-escaped for `</script>` safety)
+- `{{url}}` — canonical page URL (HTML-escaped; built from `WEB_BASE_URL`)
+- `{{image}}` — OG image URL (HTML-escaped; built from `WEB_BASE_URL`)
 
-Both are substituted using replacement functions (not string literals) to avoid `$&`/`$1`
+All are substituted using replacement functions (not string literals) to avoid `$&`/`$1`
 corruption.
 
 ## Adding a new content page
