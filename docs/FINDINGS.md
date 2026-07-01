@@ -22,17 +22,6 @@ The `max-age=60` is intentional for CDN performance. The "immediately" claim is 
 
 ---
 
-### Breadcrumb UX: raw slug segments
-
-**Where:** `apps/web/src/components/ContentPage.tsx`
-
-Breadcrumb renders raw slug segments (e.g. `company-update`) while the homepage prettifies with `replace(/-/g, ' ')` — inconsistent UX.
-
-**Why deferred:**  
-Breadcrumb prettification is cosmetic. Intermediate crumbs are now non-clickable `<span>` elements (fixed in pre-deploy hardening), eliminating the 404 link issue. Full prettification requires either client-side formatting or a `title` field in the `GET /api/pages` response.
-
----
-
 ### `VITE_API_BASE_URL` trailing-slash edge case
 
 **Where:** `apps/web/src/components/ContentPage.tsx:11`, `HomePage.tsx:9`
@@ -135,17 +124,17 @@ Render's free tier spins down after ~15 minutes of inactivity. The first request
 
 ### Search functionality — deliberately omitted
 
-**Why not built:** The app currently has 4 content pages. A full-text search implementation (client-side Fuse.js, a search index endpoint, or an Algolia/Typesense integration) would be engineering infrastructure for a problem that doesn't exist at this scale. It reads as gold-plating.
+**Why not built:** The app currently has 5 content pages. A full-text search implementation (client-side Fuse.js, a search index endpoint, or an Algolia/Typesense integration) would be engineering infrastructure for a problem that doesn't exist at this scale. It reads as gold-plating.
 
 **Design when it matters:** A `GET /api/search?q=...` endpoint in the API that does case-insensitive substring matching against `getPage()` results for a small corpus; or a dedicated search index (`ContentSource` variant that pre-indexes on startup) for larger content trees. The `ContentSource` abstraction means this slot in the module graph is already defined.
 
 ---
 
-### RSS feed, reading time — "early" at 4 pages
+### RSS feed, reading time — "early" at 5 pages
 
 **Where:** `apps/api/src/content/content.service.ts:getRssXml`, `render.ts:readingTime`
 
-RSS feeds are meaningful when content is published regularly and readers want to subscribe. At 4 pages with no publication cadence, it's infrastructure ahead of the need. Reading time is useful on long articles; short marketing blurbs (~50 words) show "1 min read" which adds noise.
+RSS feeds are meaningful when content is published regularly and readers want to subscribe. At 5 pages with no publication cadence, it's infrastructure ahead of the need. Reading time is useful on long articles; short marketing blurbs (~50 words) show "1 min read" which adds noise.
 
 **Why built anyway:** (a) the blog section explicitly signals intent to grow; (b) RSS is a standard web citizen feature with near-zero implementation cost (hand-built XML, no dependency); (c) reading time adds zero runtime cost and creates the ground for future longer-form content. **Rationale:** we built the *capability* (front-matter parsing, the RSS endpoint) to match where the content is headed, not where it is today.
 

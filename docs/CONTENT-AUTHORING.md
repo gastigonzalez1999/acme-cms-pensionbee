@@ -12,10 +12,10 @@ content/
 │   └── index.md
 ├── jobs/              →  /jobs
 │   └── index.md
-└── blog/
-    └── june/          →  /blog/june doesn't need its own page
-        └── company-update/    →  /blog/june/company-update
-            └── index.md
+└── blog/              →  /blog (a page of its own)
+    ├── index.md
+    └── company-update/    →  /blog/company-update
+        └── index.md
 ```
 
 ## Writing content
@@ -91,7 +91,7 @@ Page content starts here...
 | `date` | Publication date (ISO 8601) — shown on the page and used to sort the RSS feed | `2026-06-01` |
 | `author` | Author name — shown on the page | `Jane Smith` |
 | `description` | Short summary for SEO meta and RSS `<description>` — overrides the auto-extracted first paragraph | `A short summary.` |
-| `tags` | Topic tags (not rendered on page yet, but stored for future use) | `[company, update]` |
+| `tags` | Topic tags — shown as chips below the page title (first 3) | `[company, update]` |
 
 All fields are optional. Pages without front-matter work exactly as before.
 

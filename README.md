@@ -16,8 +16,8 @@ The brief, the original challenge description, and sample content are from [Pens
 Marketing staff drop a folder with an `index.md` into `content/` and it immediately becomes a page at that URL — no code changes required. In the current deployment, content is baked into the Docker image, so adding a page means pushing a new deploy (the `ContentSource` interface makes this swappable to S3/CMS with zero controller changes). In local dev, new folders appear live without any restart.
 
 ```
-content/about-page/index.md      →  /about-page
-content/blog/june/update/index.md →  /blog/june/update
+content/about-page/index.md              →  /about-page
+content/blog/company-update/index.md     →  /blog/company-update
 ```
 
 ## Architecture

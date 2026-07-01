@@ -52,8 +52,8 @@ For each probe below, make the HTTP request, state the expected outcome, and rep
 | `GET /pages/about-page` | 200, `text/html`, contains `<h1>` | ✓ / ✗ |
 | `GET /pages/about-page` | `<title>` = page H1 text (not "Welcome to Acme") | ✓ / ✗ |
 | `GET /api/content/about-page` | 200, JSON with `slug`, `title`, `html` keys | ✓ / ✗ |
-| `GET /api/content/blog/june/company-update` | 200, slug = "blog/june/company-update" | ✓ / ✗ |
-| `GET /api/pages` | 200, array includes "about-page", "blog/june/company-update" | ✓ / ✗ |
+| `GET /api/content/blog/company-update` | 200, slug = "blog/company-update" | ✓ / ✗ |
+| `GET /api/pages` | 200, array includes "about-page", "blog/company-update" | ✓ / ✗ |
 | `GET /healthz` | 200 | ✓ / ✗ |
 
 ### Content serving — 404 paths
@@ -95,10 +95,10 @@ Use the `browser-use` skill (Chrome DevTools MCP) to drive the live SPA at `http
    - Verify: home page renders, shows a list of content page links, no console errors.
 
 2. Click the "about-page" link (or navigate to `/about-page`)
-   - Verify: page renders styled content with an `<h1>`, breadcrumb shows "Home / about-page", no console errors, `document.title` = H1 text.
+   - Verify: page renders styled content with an `<h1>`, breadcrumb shows "Home / This is the About page" (terminal crumb uses the real page title, not the slug), no console errors, `document.title` includes the H1 text.
 
-3. Navigate to `/blog/june/company-update`
-   - Verify: nested path renders, breadcrumb shows "Home / blog / june / company-update".
+3. Navigate to `/blog/company-update`
+   - Verify: nested path renders, breadcrumb shows "Home / Blog / Company Update".
 
 4. Navigate to `/this-does-not-exist`
    - Verify: 404 component renders with "not found" message, no crash.

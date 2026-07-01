@@ -76,7 +76,9 @@ the Jest integration suite. They're separate runners — both are important.
 │   │   └── test/          # Integration tests (supertest)
 │   └── web/               # Vite + React SPA (port 5173)
 │       └── src/
-│           └── components/ # Layout, HomePage, ContentPage, NotFound
+│           ├── components/ # Layout, HomePage, ContentPage, NotFound
+│           ├── design-system/ # tokens (CSS vars) + typed React primitives
+│           └── lib/       # seo.ts, format.ts
 ├── .claude/skills/
 │   └── qa-sweep/SKILL.md  # Project QA skill (run before deploying)
 ├── docs/
