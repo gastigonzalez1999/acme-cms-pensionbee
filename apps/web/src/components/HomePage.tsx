@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { setPageMeta } from '../lib/seo';
+import { prettify, formatDate } from '../lib/format';
 import { Button } from '../design-system/components/core/Button';
 import { Badge } from '../design-system/components/core/Badge';
 import { ContentCard } from '../design-system/components/content/ContentCard';
@@ -24,16 +25,6 @@ interface PageSummary extends PageDescriptor {
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
-
-function prettify(slug: string): string {
-  return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-/** Format an ISO date string (YYYY-MM-DD) as a human-readable date. */
-function formatDate(iso: string): string {
-  const d = new Date(`${iso}T00:00:00Z`);
-  return d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
-}
 
 /**
  * Home page: lists all available content pages fetched from GET /api/pages.

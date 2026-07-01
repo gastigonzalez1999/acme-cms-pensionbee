@@ -1,6 +1,6 @@
-import { useState } from 'react';
 import type { CSSProperties, MouseEventHandler } from 'react';
 import { Icon } from '../core/Icon';
+import { useHover } from '../../hooks/useHover';
 
 /**
  * ContentCard — a page entry in the home-page index grid.
@@ -22,13 +22,12 @@ export interface ContentCardProps {
 }
 
 export function ContentCard({ title, description, eyebrow, href = '#', onClick, style = {}, ...rest }: ContentCardProps) {
-  const [hover, setHover] = useState(false);
+  const [hover, hoverProps] = useHover();
   return (
     <a
       href={href}
       onClick={onClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+      {...hoverProps}
       style={{
         display: 'flex', flexDirection: 'column', gap: 'var(--space-2)',
         padding: 'var(--space-5)',

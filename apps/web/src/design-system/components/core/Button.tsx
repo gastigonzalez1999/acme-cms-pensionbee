@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { Icon } from './Icon';
 import type { IconName } from './Icon';
+import { useHover } from '../../hooks/useHover';
 
 /**
  * Button — primary interactive control.
@@ -57,7 +57,7 @@ export function Button({
   ...rest
 }: ButtonProps) {
   const s = SIZES[size] ?? SIZES.md;
-  const [hover, setHover] = useState(false);
+  const [hover, hoverProps] = useHover();
   const base = variantStyle(variant);
 
   const hoverStyle: CSSProperties = !disabled && hover
@@ -75,8 +75,7 @@ export function Button({
       type={type}
       disabled={disabled}
       onClick={onClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+      {...hoverProps}
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         gap: s.gap,

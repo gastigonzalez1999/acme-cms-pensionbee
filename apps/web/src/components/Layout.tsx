@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { ThemeToggle } from '../design-system/components/core/ThemeToggle';
+import { useHover } from '../design-system/hooks/useHover';
 import logoMark from '../assets/logo-mark.svg';
 
 interface LayoutProps {
@@ -9,12 +9,11 @@ interface LayoutProps {
 }
 
 function NavLink({ to, children }: { to: string; children: ReactNode }) {
-  const [hover, setHover] = useState(false);
+  const [hover, hoverProps] = useHover();
   return (
     <Link
       to={to}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+      {...hoverProps}
       style={{
         fontFamily: 'var(--font-sans)', fontSize: 'var(--text-ui)', fontWeight: 500,
         color: hover ? 'var(--accent-text)' : 'var(--text-muted)',
@@ -28,15 +27,14 @@ function NavLink({ to, children }: { to: string; children: ReactNode }) {
 }
 
 function FooterLink({ to, href, children }: { to?: string; href?: string; children: ReactNode }) {
-  const [hover, setHover] = useState(false);
+  const [hover, hoverProps] = useHover();
   const style = {
     fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)',
     color: hover ? 'var(--accent-text)' : 'var(--text-muted)',
     textDecoration: 'none', transition: 'color var(--dur-fast) var(--ease-standard)',
   };
-  const handlers = { onMouseEnter: () => setHover(true), onMouseLeave: () => setHover(false) };
-  if (to) return <Link to={to} style={style} {...handlers}>{children}</Link>;
-  return <a href={href} target="_blank" rel="noopener noreferrer" style={style} {...handlers}>{children}</a>;
+  if (to) return <Link to={to} style={style} {...hoverProps}>{children}</Link>;
+  return <a href={href} target="_blank" rel="noopener noreferrer" style={style} {...hoverProps}>{children}</a>;
 }
 
 /**
@@ -45,7 +43,7 @@ function FooterLink({ to, href, children }: { to?: string; href?: string; childr
  * dark-mode toggle, and an informative footer.
  */
 export default function Layout({ children }: LayoutProps) {
-  const [brandHover, setBrandHover] = useState(false);
+  const [brandHover, brandHoverProps] = useHover();
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--surface-page)' }}>
@@ -66,8 +64,7 @@ export default function Layout({ children }: LayoutProps) {
         }}>
           <Link
             to="/"
-            onMouseEnter={() => setBrandHover(true)}
-            onMouseLeave={() => setBrandHover(false)}
+            {...brandHoverProps}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
           >
             <img src={logoMark} alt="" style={{ width: 26, height: 'auto', display: 'block' }} />

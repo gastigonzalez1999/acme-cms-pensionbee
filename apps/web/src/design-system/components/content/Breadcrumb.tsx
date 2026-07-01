@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import type { CSSProperties } from 'react';
+import { useHover } from '../../hooks/useHover';
 
 /**
  * Breadcrumb — the "Home / Blog / Company Update" trail above an
@@ -43,12 +43,11 @@ export function Breadcrumb({ items = [], style = {}, ...rest }: BreadcrumbProps)
 }
 
 function BreadcrumbLink({ item }: { item: BreadcrumbItem }) {
-  const [hover, setHover] = useState(false);
+  const [hover, hoverProps] = useHover();
   return (
     <a
       href={item.href}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+      {...hoverProps}
       style={{ color: hover ? 'var(--accent-text)' : 'inherit', textDecoration: 'none', transition: 'color var(--dur-fast) var(--ease-standard)' }}
     >
       {item.label}

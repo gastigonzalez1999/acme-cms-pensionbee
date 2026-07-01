@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { Icon } from './Icon';
 import type { IconName } from './Icon';
+import { useHover } from '../../hooks/useHover';
 
 /**
  * IconButton — square, icon-only control for toolbars and headers
@@ -35,7 +35,7 @@ export function IconButton({
   children,
   ...rest
 }: IconButtonProps) {
-  const [hover, setHover] = useState(false);
+  const [hover, hoverProps] = useHover();
   const dim = SIZES[size] ?? SIZES.md;
   const solid = variant === 'solid';
   const bg = solid
@@ -50,8 +50,7 @@ export function IconButton({
       title={label}
       disabled={disabled}
       onClick={onClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+      {...hoverProps}
       style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         width: dim, height: dim,

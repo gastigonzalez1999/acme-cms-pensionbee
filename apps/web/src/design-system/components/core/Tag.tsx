@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import type { CSSProperties, ElementType, ReactNode } from 'react';
+import { useHover } from '../../hooks/useHover';
 
 /**
  * Tag — an article topic label from markdown front-matter
@@ -16,15 +16,14 @@ export interface TagProps {
 }
 
 export function Tag({ children, href, onClick, hash = true, style = {}, ...rest }: TagProps) {
-  const [hover, setHover] = useState(false);
+  const [hover, hoverProps] = useHover();
   const Comp: ElementType = href ? 'a' : onClick ? 'button' : 'span';
   const interactive = Boolean(href || onClick);
   return (
     <Comp
       href={href}
       onClick={onClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
+      {...hoverProps}
       style={{
         display: 'inline-flex', alignItems: 'center',
         padding: '3px 10px',

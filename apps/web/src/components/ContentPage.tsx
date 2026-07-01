@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import NotFound from './NotFound';
 import { setPageMeta } from '../lib/seo';
+import { prettify, formatDate } from '../lib/format';
 import { Breadcrumb } from '../design-system/components/content/Breadcrumb';
 import { ArticleMeta } from '../design-system/components/content/ArticleMeta';
 import { ShareBar } from '../design-system/components/content/ShareBar';
@@ -9,10 +10,6 @@ import { Tag } from '../design-system/components/core/Tag';
 import { Button } from '../design-system/components/core/Button';
 import { Spinner } from '../design-system/components/feedback/Spinner';
 import { Alert } from '../design-system/components/feedback/Alert';
-
-function prettify(slug: string): string {
-  return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-}
 
 interface ContentPageData {
   slug: string;
@@ -29,12 +26,6 @@ interface ContentPageData {
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
-
-/** Format an ISO date string (YYYY-MM-DD) as a human-readable date. */
-function formatDate(iso: string): string {
-  const d = new Date(`${iso}T00:00:00Z`);
-  return d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
-}
 
 /**
  * Catch-all page component.
