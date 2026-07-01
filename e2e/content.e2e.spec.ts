@@ -31,14 +31,15 @@ test.describe('Content pages', () => {
   });
 
   test('renders nested content pages', async ({ page }) => {
-    await page.goto('/blog/june/company-update');
+    await page.goto('/blog/company-update');
     await expect(page.locator('h1')).toBeVisible();
   });
 
   test('shows breadcrumb navigation for nested pages', async ({ page }) => {
-    await page.goto('/blog/june/company-update');
-    // ContentPage renders a nav with breadcrumb links
-    await expect(page.getByRole('navigation')).toBeVisible();
+    await page.goto('/blog/company-update');
+    // ContentPage renders a <nav aria-label="Breadcrumb"> — scoped to avoid
+    // matching the header "Site navigation" or footer "Footer navigation" navs.
+    await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toBeVisible();
   });
 
   test('prose styling is applied to content', async ({ page }) => {

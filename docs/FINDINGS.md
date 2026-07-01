@@ -133,23 +133,6 @@ Render's free tier spins down after ~15 minutes of inactivity. The first request
 
 ---
 
-### Section-index pages (`/blog`) deferred
-
-**Where:** `content/blog/` has sub-pages but no `index.md` of its own.
-
-The `blog/company-update` page lives under a `blog/` folder that has no landing page. This means:
-- `/blog` returns 404 (no `index.md`) — confirmed during QA.
-- The breadcrumb renders "Blog" as an inert `<span>` (not a link), which is the correct fix — it never links to a dead path.
-- The homepage list shows "blog › company update" while the breadcrumb shows "Blog / Company Update" and the page H1 reads "June Company Update" — a three-way label inconsistency.
-
-**Why kept:** the `blog/company-update` nesting is deliberate. It's the live proof that folder-depth → URL-depth works with no code changes (a core brief requirement). Flattening to `/company-update` would remove the only nested-routing demonstration in the repo.
-
-**Fix when the blog grows:** create `content/blog/index.md` as a section landing that lists child posts. At that point "Blog" in the breadcrumb becomes a real link, and the controller's `@Slug` extract cleanly serves it. The breadcrumb logic needs no change — it already uses `<Link>` only for "Home" and the current page; intermediate nodes would become real pages, making their links valid naturally.
-
-**Label inconsistency fix:** align to one label. Suggested: homepage card "Blog › Company Update" (already done via `prettify`), breadcrumb "Blog / Company Update" (already done via `prettify`), H1 "Company Update" (drop "June" from the markdown — or keep it and accept the mismatch as "article titles are allowed to be richer than their slug"). Either is defensible; just pick one and state it.
-
----
-
 ### Search functionality — deliberately omitted
 
 **Why not built:** The app currently has 4 content pages. A full-text search implementation (client-side Fuse.js, a search index endpoint, or an Algolia/Typesense integration) would be engineering infrastructure for a problem that doesn't exist at this scale. It reads as gold-plating.

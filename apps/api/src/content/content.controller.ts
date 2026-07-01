@@ -31,7 +31,21 @@ function Slug(prefix: string): ParameterDecorator {
     const raw = req.url.startsWith(prefix)
       ? req.url.slice(prefix.length).split('?')[0]
       : '';
-    return raw.split('/').filter(Boolean);
+    // URL-decode each segment so the path-traversal guard in source.ts can
+    // catch encoded attacks like ..%2F..%2Fetc%2Fpasswd → ['..','..',…].
+    // A malformed percent-sequence is treated as an empty/invalid segment,
+    // which produces a 404 rather than a 500.
+    return raw
+      .split('/')
+      .filter(Boolean)
+      .map((seg) => {
+        try {
+          return decodeURIComponent(seg);
+        } catch {
+          return '';
+        }
+      })
+      .filter(Boolean);
   })();
 }
 
@@ -57,7 +71,11 @@ export class ContentController {
   async getContentJson(@Slug('/api/content/') segments: string[]) {
     const page = await this.contentService.getPage(segments);
     if (!page) throw new NotFoundException('Page not found');
-    return page;
+    // Include server-built JSON-LD so the SPA can inject it verbatim — single
+    // source of structured data, no client-side graph duplication.
+    const webBaseUrl = this.config.get<string>('WEB_BASE_URL', 'http://localhost:5173');
+    const structuredData = this.contentService.buildPageStructuredData(page, segments, webBaseUrl);
+    return { ...page, structuredData };
   }
 
   /**

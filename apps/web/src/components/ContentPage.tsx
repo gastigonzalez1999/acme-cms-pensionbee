@@ -16,6 +16,9 @@ interface ContentPageData {
   author?: string;
   tags?: string[];
   readingTime?: number;
+  /** Server-built JSON-LD graph (Article + BreadcrumbList). Injected verbatim
+   * by setPageMeta so there's a single source of structured data. */
+  structuredData?: object | null;
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
@@ -58,7 +61,11 @@ export default function ContentPage() {
     setError(false);
     setData(null);
 
-    fetch(`${API_BASE}/api/content/${slug}`)
+    // AbortController so that if the slug changes before the fetch resolves,
+    // the stale response is ignored and can't clobber the new page's state.
+    const controller = new AbortController();
+
+    fetch(`${API_BASE}/api/content/${slug}`, { signal: controller.signal })
       .then(async (res) => {
         if (res.status === 404) {
           setNotFound(true);
@@ -69,43 +76,25 @@ export default function ContentPage() {
         setData(json);
 
         // Update all head meta for sharing / SEO — replaces the static shell defaults.
+        // JSON-LD is provided by the server (single source of truth for structured data).
         setPageMeta({
           title: json.title,
           description: json.description,
           url: window.location.href,
           image: `${window.location.origin}/og-image.png`,
           type: 'article',
-          jsonLd: [
-            {
-              '@context': 'https://schema.org',
-              '@type': 'Article',
-              headline: json.title,
-              description: json.description,
-              url: window.location.href,
-              ...(json.date ? { datePublished: json.date } : {}),
-              ...(json.author ? { author: { '@type': 'Person', name: json.author } } : {}),
-            },
-            {
-              '@context': 'https://schema.org',
-              '@type': 'BreadcrumbList',
-              itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Home', item: `${window.location.origin}/` },
-                ...json.slug.split('/').map((part, i, arr) => ({
-                  '@type': 'ListItem',
-                  position: i + 2,
-                  name: prettify(part),
-                  ...(i === arr.length - 1 ? { item: window.location.href } : {}),
-                })),
-              ],
-            },
-          ],
+          jsonLd: json.structuredData ?? null,
           feedHref: `${API_BASE}/rss.xml`,
         });
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        // Ignore abort errors from cleanup — they're not real failures.
+        if (err instanceof Error && err.name === 'AbortError') return;
         setError(true);
       })
       .finally(() => setLoading(false));
+
+    return () => controller.abort();
   }, [slug]);
 
   if (loading) {
@@ -149,7 +138,9 @@ export default function ContentPage() {
             <li key={i} className="flex items-center gap-1.5">
               <span aria-hidden="true">/</span>
               {i === arr.length - 1 ? (
-                <span className="text-gray-900 dark:text-white font-medium" aria-current="page">{prettify(part)}</span>
+                // Use the real page title for the terminal crumb so the visual
+                // breadcrumb matches the <h1> (not just a prettified slug).
+                <span className="text-gray-900 dark:text-white font-medium" aria-current="page">{data.title}</span>
               ) : (
                 <span>{prettify(part)}</span>
               )}

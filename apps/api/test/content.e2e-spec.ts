@@ -106,7 +106,7 @@ describe('Content API (e2e)', () => {
 
   // ── Additional tests ─────────────────────────────────────────────────────
 
-  it('GET /api/content/test-page → 200 with JSON body', async () => {
+  it('GET /api/content/test-page → 200 with JSON body including structuredData', async () => {
     const res = await request(app.getHttpServer())
       .get('/api/content/test-page')
       .expect(200);
@@ -116,6 +116,11 @@ describe('Content API (e2e)', () => {
       title: 'Test Page Title',
     });
     expect(res.body.html).toContain('<h1>Test Page Title</h1>');
+    // structuredData is the server-built JSON-LD graph (Article + BreadcrumbList)
+    // returned so the SPA can inject it verbatim without rebuilding it client-side.
+    expect(Array.isArray(res.body.structuredData)).toBe(true);
+    expect(res.body.structuredData[0]).toMatchObject({ '@type': 'Article', headline: 'Test Page Title' });
+    expect(res.body.structuredData[1]).toMatchObject({ '@type': 'BreadcrumbList' });
   });
 
   it('GET /api/content/non-existent → 404', () => {
@@ -164,10 +169,24 @@ describe('Content API (e2e)', () => {
     expect(res.text).toContain('<title>Test Page Title</title>');
   });
 
-  it('rejects path traversal attempts with 404', () => {
-    return request(app.getHttpServer())
+  it('rejects URL-encoded path traversal with 404 (guard, not accidental file-miss)', async () => {
+    // @Slug decodes '..%2F..%2Fetc%2Fpasswd' → '../../etc/passwd' (contains '/'),
+    // which source.ts:47 rejects before path.resolve — not just an ENOENT miss.
+    // Assert structured error body to confirm our exception filter handled it.
+    const res = await request(app.getHttpServer())
       .get('/api/content/..%2F..%2Fetc%2Fpasswd')
       .expect(404);
+    expect(res.body).toMatchObject({ statusCode: 404 });
+    // Must not leak any file content (traversal was blocked at the guard)
+    expect(typeof res.body.html).toBe('undefined');
+  });
+
+  it('rejects literal ".." segments (direct traversal, no encoding)', async () => {
+    // Confirms the guard blocks the decoded form directly.
+    const res = await request(app.getHttpServer())
+      .get('/api/content/../../../etc/passwd')
+      .expect(404);
+    expect(res.body).toMatchObject({ statusCode: 404 });
   });
 
   it('GET /api/content/test-page → includes readingTime', async () => {
@@ -176,6 +195,28 @@ describe('Content API (e2e)', () => {
       .expect(200);
     expect(typeof res.body.readingTime).toBe('number');
     expect(res.body.readingTime).toBeGreaterThanOrEqual(1);
+  });
+
+  it('GET /pages/* HTML-escapes & < > in title to prevent tag injection', async () => {
+    // A title with & < > must be escaped in the <title> text node.
+    // Note: typographer:true converts ASCII " to curly quotes (U+201C/D) which
+    // are NOT injection vectors — only raw < > & are tested here.
+    const xssDir = path.join(tmpDir, 'xss-page');
+    fs.mkdirSync(xssDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(xssDir, 'index.md'),
+      '# Title with <em> tags & ampersands\n\nContent.',
+    );
+
+    const res = await request(app.getHttpServer())
+      .get('/pages/xss-page')
+      .expect(200);
+
+    // < > & in the title must be HTML-escaped in the <title> element
+    expect(res.text).toContain('&lt;em&gt;');
+    expect(res.text).toContain('&amp;');
+    // Raw < must not appear inside the <title>…</title> text node
+    expect(res.text).not.toMatch(/<title>[^<]*<[a-z]/);
   });
 
   it('GET /rss.xml → 200 with valid RSS feed containing content items', async () => {

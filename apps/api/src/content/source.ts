@@ -99,6 +99,8 @@ export class FileSystemContentSource implements ContentSource {
     };
 
     await walk(this.contentDir, []);
+    // Sort alphabetically by joined slug for stable ordering across environments.
+    results.sort((a, b) => a.join('/').localeCompare(b.join('/')));
     return results;
   }
 }

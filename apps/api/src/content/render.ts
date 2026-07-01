@@ -76,7 +76,12 @@ export function renderMarkdown(source: string): RenderedPage {
             .join('')
             .trim();
           if (text) {
-            description = text.length > 160 ? text.slice(0, 157) + '…' : text;
+            // Array.from slices by Unicode code point, not UTF-16 code unit,
+            // so a 4-byte emoji straddling the boundary is never split.
+            description =
+              text.length > 160
+                ? Array.from(text).slice(0, 157).join('') + '…'
+                : text;
             break;
           }
         }

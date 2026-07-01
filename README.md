@@ -13,7 +13,7 @@ The brief, the original challenge description, and sample content are from [Pens
 
 ## What it does
 
-Marketing staff drop a folder with an `index.md` into `content/` and it immediately becomes a page at that URL. No code changes. No restart needed in production.
+Marketing staff drop a folder with an `index.md` into `content/` and it immediately becomes a page at that URL — no code changes required. In the current deployment, content is baked into the Docker image, so adding a page means pushing a new deploy (the `ContentSource` interface makes this swappable to S3/CMS with zero controller changes). In local dev, new folders appear live without any restart.
 
 ```
 content/about-page/index.md      →  /about-page
@@ -93,7 +93,7 @@ cd apps/web && npm test
 npm run test:e2e
 ```
 
-**Test count:** 38 unit tests + 16 integration tests + 6 component tests = **60 tests total** (+ Playwright E2E)
+**Test count:** 42 unit tests + 18 integration tests + 6 component tests = **66 tests total** (+ 7 Playwright E2E)
 
 The three brief-required tests are in `apps/api/test/content.e2e-spec.ts`:
 - `GET /pages/test-page → 200` for a valid URL

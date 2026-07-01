@@ -16,6 +16,56 @@ export interface ContentPage {
   readingTime: number;
 }
 
+// ---------------------------------------------------------------------------
+// Output-encoding helpers — applied at the boundary where author-controlled
+// text is embedded into different output contexts.
+// ---------------------------------------------------------------------------
+
+/** Escape text for safe embedding in HTML attributes and text nodes. */
+function htmlEscape(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * Escape text for safe embedding inside a <script type="application/ld+json">.
+ *
+ * JSON.stringify does not escape < > & / which can be exploited to break out
+ * of the <script> block (e.g. a title containing </script>).  Unicode-escaping
+ * these characters is valid JSON and inert to JSON parsers while being safe in
+ * an HTML <script> context.  Also escapes U+2028/U+2029 which are line
+ * terminators in JS string literals but not in JSON strings.
+ */
+function jsonLdEscape(json: string): string {
+  return json
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\//g, '\\u002f')
+    .replace(new RegExp(String.fromCharCode(0x2028), 'g'), '\\u2028')
+    .replace(new RegExp(String.fromCharCode(0x2029), 'g'), '\\u2029');
+}
+
+/**
+ * Escape text for safe embedding in XML text nodes and attribute values.
+ *
+ * CDATA sections (<![CDATA[…]]>) are NOT used because a title/description
+ * containing the literal sequence ]]> would prematurely close the section
+ * and corrupt the feed.  Entity-escaping is the correct, general fix.
+ */
+function xmlEscape(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 @Injectable()
 export class ContentService {
   private readonly logger = new Logger(ContentService.name);
@@ -82,17 +132,34 @@ export class ContentService {
     const imageUrl = webBaseUrl ? `${webBaseUrl}/og-image.png` : '';
     const structuredData = this.buildJsonLd(page, segments, webBaseUrl);
 
+    // htmlEscape is applied to author-controlled strings that land in HTML
+    // attributes (content="…") and <title> text nodes.  {{content}} is already
+    // sanitized by sanitize-html and must NOT be escaped a second time.
+    // {{structuredData}} is escaped for <script> context by buildJsonLd itself.
     return template
-      .replace('{{title}}', () => page.title)
-      .replace('{{description}}', () => page.description)
-      .replace('{{url}}', () => pageUrl)
-      .replace('{{image}}', () => imageUrl)
+      .replace('{{title}}', () => htmlEscape(page.title))
+      .replace('{{description}}', () => htmlEscape(page.description))
+      .replace('{{url}}', () => htmlEscape(pageUrl))
+      .replace('{{image}}', () => htmlEscape(imageUrl))
       .replace('{{structuredData}}', () => structuredData)
       .replace('{{content}}', () => page.html);
   }
 
-  /** Build JSON-LD structured data for a content page (Article + BreadcrumbList). */
-  private buildJsonLd(page: ContentPage, segments: string[], webBaseUrl: string): string {
+  /**
+   * Build the JSON-LD structured-data graph for a content page.
+   *
+   * Returns the raw JS object (not a string) so callers can either:
+   *  • embed it in the JSON API response (controller → SPA)
+   *  • convert to string + HTML-escape it for <script> context (getPageHtml)
+   *
+   * Terminal breadcrumb uses the page's real title (not a prettified slug) so
+   * the structured data matches the visible <h1> heading.
+   */
+  buildPageStructuredData(
+    page: ContentPage,
+    segments: string[],
+    webBaseUrl: string,
+  ): object {
     const pageUrl = webBaseUrl ? `${webBaseUrl}/${page.slug}` : '';
     const article: Record<string, unknown> = {
       '@type': 'Article',
@@ -103,6 +170,9 @@ export class ContentService {
     if (page.date) article.datePublished = page.date;
     if (page.author) article.author = { '@type': 'Person', name: page.author };
 
+    const prettify = (s: string) =>
+      s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
     const crumbs = [
       { '@type': 'ListItem', position: 1, name: 'Home', item: webBaseUrl ? `${webBaseUrl}/` : '/' },
       ...segments.map((seg, i) => {
@@ -110,14 +180,16 @@ export class ContentService {
         const entry: Record<string, unknown> = {
           '@type': 'ListItem',
           position: i + 2,
-          name: seg.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+          // Use the real page title for the terminal crumb so the structured data
+          // matches the visible <h1>.  Intermediate segments are prettified from slug.
+          name: isLast ? page.title : prettify(seg),
         };
         if (isLast && pageUrl) entry.item = pageUrl;
         return entry;
       }),
     ];
 
-    const graph = [
+    return [
       { '@context': 'https://schema.org', ...article },
       {
         '@context': 'https://schema.org',
@@ -125,8 +197,15 @@ export class ContentService {
         itemListElement: crumbs,
       },
     ];
+  }
 
-    return JSON.stringify(graph);
+  /**
+   * Build JSON-LD as a string safe for injection into a <script> tag.
+   * Applies Unicode-escape encoding to prevent </script> breakout.
+   */
+  private buildJsonLd(page: ContentPage, segments: string[], webBaseUrl: string): string {
+    const graph = this.buildPageStructuredData(page, segments, webBaseUrl);
+    return jsonLdEscape(JSON.stringify(graph));
   }
 
   /** List all available content pages (powers the SPA nav and /api/pages). */
@@ -144,9 +223,9 @@ export class ContentService {
       pages.map(async (segs) => ({ segs, page: await this.getPage(segs) })),
     );
     const urls = [
-      `  <url><loc>${webBaseUrl}/</loc></url>`,
+      `  <url><loc>${xmlEscape(webBaseUrl)}/</loc></url>`,
       ...pageData.map(({ segs, page }) => {
-        const loc = `${webBaseUrl}/${segs.join('/')}`;
+        const loc = xmlEscape(`${webBaseUrl}/${segs.join('/')}`);
         const lastmod = page?.date ? `<lastmod>${page.date}</lastmod>` : '';
         return `  <url><loc>${loc}</loc>${lastmod}</url>`;
       }),
@@ -164,22 +243,28 @@ export class ContentService {
       await Promise.all(pages.map((segs) => this.getPage(segs)))
     ).filter((p): p is ContentPage => p !== null);
 
-    // Sort by date desc; undated items last.
+    // Sort by date desc; undated items last.  Slug is the stable tiebreaker so
+    // the feed order is deterministic across environments and deploys.
     items.sort((a, b) => {
-      if (!a.date && !b.date) return 0;
+      if (!a.date && !b.date) return a.slug.localeCompare(b.slug);
       if (!a.date) return 1;
       if (!b.date) return -1;
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
+      const diff = new Date(b.date).getTime() - new Date(a.date).getTime();
+      return diff !== 0 ? diff : a.slug.localeCompare(b.slug);
     });
 
     const itemsXml = items
       .map((page) => {
-        const link = `${webBaseUrl}/${page.slug}`;
+        // xmlEscape is applied to all author-controlled strings and URLs.
+        // CDATA sections are intentionally avoided: a title/description containing
+        // the literal sequence ]]> would prematurely close the CDATA block and
+        // corrupt the feed.  Entity-escaping handles all inputs correctly.
+        const link = xmlEscape(`${webBaseUrl}/${page.slug}`);
         const pubDate = page.date ? `\n    <pubDate>${new Date(page.date).toUTCString()}</pubDate>` : '';
         return `  <item>
-    <title><![CDATA[${page.title}]]></title>
+    <title>${xmlEscape(page.title)}</title>
     <link>${link}</link>
-    <description><![CDATA[${page.description}]]></description>${pubDate}
+    <description>${xmlEscape(page.description)}</description>${pubDate}
     <guid isPermaLink="true">${link}</guid>
   </item>`;
       })
@@ -190,7 +275,7 @@ export class ContentService {
 <rss version="2.0">
   <channel>
     <title>Acme Co. Content Hub</title>
-    <link>${webBaseUrl}/</link>
+    <link>${xmlEscape(webBaseUrl)}/</link>
     <description>Latest content from Acme Co.</description>
     <lastBuildDate>${now}</lastBuildDate>
 ${itemsXml}

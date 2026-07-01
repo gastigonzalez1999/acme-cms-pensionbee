@@ -89,7 +89,11 @@ describe('ContentPage', () => {
     // Breadcrumb items
     expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument();
     expect(screen.getByText('Home')).toBeInTheDocument();
-    expect(screen.getByText('Update')).toBeInTheDocument();
+    // Terminal crumb shows the real page title (not just prettify(slug)),
+    // so "June Update" (the title) not "Update" (the last slug segment).
+    // Use selector to target the crumb span specifically (the rendered html
+    // also contains "June Update" in the <h1>, so we can't use getByText alone).
+    expect(screen.getByText('June Update', { selector: '[aria-current="page"]' })).toBeInTheDocument();
   });
 
   it('shows an error message when the API call fails (network error)', async () => {
