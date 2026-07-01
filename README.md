@@ -7,6 +7,8 @@ The brief, the original challenge description, and sample content are from [Pens
 - 🌐 **Web app:** https://acme-cms-pensionbee-web-beta.vercel.app
 - 🔌 **API / Swagger:** https://acme-cms-api.onrender.com/docs
 
+> **Note:** the API runs on Render's free tier, which spins down after ~15 min of inactivity. The first request after an idle period takes ~20s to wake; all subsequent requests are instant (~0.3s). This is a free-tier constraint, not a code issue — see [docs/FINDINGS.md](docs/FINDINGS.md) for the production fix.
+
 ---
 
 ## What it does

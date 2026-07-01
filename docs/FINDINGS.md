@@ -117,9 +117,9 @@ The API has no request-rate protection. A script could hammer `/api/pages` or th
 
 **Where:** `render.yaml` (`plan: free`)
 
-Render's free tier spins down after ~15 minutes of inactivity. The first request after a cold start incurs a 10–30 second startup delay.
+Render's free tier spins down after ~15 minutes of inactivity. The first request after a cold start incurs a startup delay — measured at **~22.7s cold** (first hit after idle); subsequent warm requests are **0.3–0.7s**.
 
-**Documented, not fixed:** Acceptable for a demo/assessment. Production fix: upgrade to a paid plan (always-on) or add a cron/uptime ping service (e.g. UptimeRobot) to keep the container warm.
+**Documented, not fixed:** Acceptable for a demo/assessment. Production fix: upgrade to a paid plan (always-on) or add a cron/uptime ping service (e.g. UptimeRobot, a GitHub Actions schedule) to keep the container warm. Note this honestly to any reviewer who clicks the live link cold.
 
 ---
 
@@ -130,6 +130,23 @@ Render's free tier spins down after ~15 minutes of inactivity. The first request
 `COPY content/ ./content/` means adding a new marketing page requires a container rebuild and redeploy — the "drop a folder, no restart" claim holds only in local dev (where `content/` is a live directory on disk).
 
 **Documented, not fixed:** The `ContentSource` interface exists precisely to make this swappable. The next step is a `CmsContentSource` or `S3ContentSource` that reads from an external store — the controller and service need zero changes. For this assessment scope, baking content into the image is simpler and more predictable than a mounted volume or external store.
+
+---
+
+### Section-index pages (`/blog`) deferred
+
+**Where:** `content/blog/` has sub-pages but no `index.md` of its own.
+
+The `blog/company-update` page lives under a `blog/` folder that has no landing page. This means:
+- `/blog` returns 404 (no `index.md`) — confirmed during QA.
+- The breadcrumb renders "Blog" as an inert `<span>` (not a link), which is the correct fix — it never links to a dead path.
+- The homepage list shows "blog › company update" while the breadcrumb shows "Blog / Company Update" and the page H1 reads "June Company Update" — a three-way label inconsistency.
+
+**Why kept:** the `blog/company-update` nesting is deliberate. It's the live proof that folder-depth → URL-depth works with no code changes (a core brief requirement). Flattening to `/company-update` would remove the only nested-routing demonstration in the repo.
+
+**Fix when the blog grows:** create `content/blog/index.md` as a section landing that lists child posts. At that point "Blog" in the breadcrumb becomes a real link, and the controller's `@Slug` extract cleanly serves it. The breadcrumb logic needs no change — it already uses `<Link>` only for "Home" and the current page; intermediate nodes would become real pages, making their links valid naturally.
+
+**Label inconsistency fix:** align to one label. Suggested: homepage card "Blog › Company Update" (already done via `prettify`), breadcrumb "Blog / Company Update" (already done via `prettify`), H1 "Company Update" (drop "June" from the markdown — or keep it and accept the mismatch as "article titles are allowed to be richer than their slug"). Either is defensible; just pick one and state it.
 
 ---
 
