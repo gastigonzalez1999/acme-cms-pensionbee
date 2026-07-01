@@ -6,10 +6,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Acme Co. — Content Hub</title>
     <meta name="description" content="Acme Co. marketing content hub — browse all pages." />
+    <!-- Open Graph -->
     <meta property="og:title" content="Acme Co. — Content Hub" />
     <meta property="og:description" content="Acme Co. marketing content hub — browse all pages." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://acme-cms-pensionbee-web-beta.vercel.app/og-image.svg" />
+    <meta property="og:url" content="https://acme-cms-pensionbee-web-beta.vercel.app/" />
+    <meta property="og:image" content="https://acme-cms-pensionbee-web-beta.vercel.app/og-image.png" />
+    <meta property="og:site_name" content="Acme Co." />
+    <!-- Twitter card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Acme Co. — Content Hub" />
+    <meta name="twitter:description" content="Acme Co. marketing content hub — browse all pages." />
+    <meta name="twitter:image" content="https://acme-cms-pensionbee-web-beta.vercel.app/og-image.png" />
+    <!-- Dark mode: apply class before paint to avoid flash -->
+    <script>
+      (function () {
+        var stored = localStorage.getItem('theme');
+        if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

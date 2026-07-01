@@ -169,6 +169,34 @@ describe('Content API (e2e)', () => {
       .get('/api/content/..%2F..%2Fetc%2Fpasswd')
       .expect(404);
   });
+
+  it('GET /api/content/test-page → includes readingTime', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/api/content/test-page')
+      .expect(200);
+    expect(typeof res.body.readingTime).toBe('number');
+    expect(res.body.readingTime).toBeGreaterThanOrEqual(1);
+  });
+
+  it('GET /rss.xml → 200 with valid RSS feed containing content items', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/rss.xml')
+      .expect(200);
+    expect(res.headers['content-type']).toMatch(/application\/rss\+xml/);
+    expect(res.text).toContain('<?xml');
+    expect(res.text).toContain('<rss');
+    expect(res.text).toContain('<item>');
+    expect(res.text).toContain('Test Page Title');
+  });
+
+  it('GET /sitemap.xml → 200 with URLs for all pages', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/sitemap.xml')
+      .expect(200);
+    expect(res.headers['content-type']).toMatch(/application\/xml/);
+    expect(res.text).toContain('<urlset');
+    expect(res.text).toContain('test-page');
+  });
 });
 
 // ── Real DI factory wiring ────────────────────────────────────────────────

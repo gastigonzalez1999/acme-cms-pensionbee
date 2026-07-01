@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import NotFound from './NotFound';
+import { setPageMeta } from '../lib/seo';
 
 function prettify(slug: string): string {
   return slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
@@ -9,10 +10,21 @@ function prettify(slug: string): string {
 interface ContentPageData {
   slug: string;
   title: string;
+  description: string;
   html: string;
+  date?: string;
+  author?: string;
+  tags?: string[];
+  readingTime?: number;
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+
+/** Format an ISO date string (YYYY-MM-DD) as a human-readable date. */
+function formatDate(iso: string): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  return d.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+}
 
 /**
  * Catch-all page component.
@@ -55,7 +67,40 @@ export default function ContentPage() {
         if (!res.ok) throw new Error(`API error: ${res.status}`);
         const json = (await res.json()) as ContentPageData;
         setData(json);
-        document.title = `${json.title} — Acme Co.`;
+
+        // Update all head meta for sharing / SEO — replaces the static shell defaults.
+        setPageMeta({
+          title: json.title,
+          description: json.description,
+          url: window.location.href,
+          image: `${window.location.origin}/og-image.png`,
+          type: 'article',
+          jsonLd: [
+            {
+              '@context': 'https://schema.org',
+              '@type': 'Article',
+              headline: json.title,
+              description: json.description,
+              url: window.location.href,
+              ...(json.date ? { datePublished: json.date } : {}),
+              ...(json.author ? { author: { '@type': 'Person', name: json.author } } : {}),
+            },
+            {
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Home', item: `${window.location.origin}/` },
+                ...json.slug.split('/').map((part, i, arr) => ({
+                  '@type': 'ListItem',
+                  position: i + 2,
+                  name: prettify(part),
+                  ...(i === arr.length - 1 ? { item: window.location.href } : {}),
+                })),
+              ],
+            },
+          ],
+          feedHref: `${API_BASE}/rss.xml`,
+        });
       })
       .catch(() => {
         setError(true);
@@ -86,6 +131,11 @@ export default function ContentPage() {
 
   if (!data) return null;
 
+  const metaParts: string[] = [];
+  if (data.author) metaParts.push(data.author);
+  if (data.date) metaParts.push(formatDate(data.date));
+  if (data.readingTime) metaParts.push(`${data.readingTime} min read`);
+
   return (
     <article>
       <nav aria-label="Breadcrumb" className="mb-6">
@@ -108,11 +158,24 @@ export default function ContentPage() {
         </ol>
       </nav>
 
-      {/* prose: Tailwind Typography's opinionated, beautiful markdown styles */}
-      <div
-        className="prose prose-gray dark:prose-invert max-w-none prose-headings:font-semibold prose-a:text-blue-600 dark:prose-a:text-blue-400"
-        dangerouslySetInnerHTML={{ __html: data.html }}
-      />
+      {/* Author · date · reading time — shown only when front-matter provides them */}
+      {metaParts.length > 0 && (
+        <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+          {metaParts.join(' · ')}
+        </p>
+      )}
+
+      {/*
+        prose: Tailwind Typography's opinionated, beautiful markdown styles.
+        overflow-x wrapper: prevents wide tables / code blocks / long URLs
+        from breaking the mobile layout — they scroll inside their container.
+      */}
+      <div className="overflow-x-auto">
+        <div
+          className="prose prose-gray dark:prose-invert max-w-none prose-headings:font-semibold prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-pre:overflow-x-auto prose-img:max-w-full break-words"
+          dangerouslySetInnerHTML={{ __html: data.html }}
+        />
+      </div>
 
       <div className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Share this page</p>
@@ -129,7 +192,7 @@ export default function ContentPage() {
             href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium bg-blue-700 text-white hover:bg-blue-800 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium bg-blue-700 text-white hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-500 transition-colors"
           >
             LinkedIn
           </a>

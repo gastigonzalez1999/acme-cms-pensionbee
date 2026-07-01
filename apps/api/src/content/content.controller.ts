@@ -80,7 +80,8 @@ export class ContentController {
     @Slug('/pages/') segments: string[],
     @Res() res: Response,
   ): Promise<void> {
-    const html = await this.contentService.getPageHtml(segments);
+    const webBaseUrl = this.config.get<string>('WEB_BASE_URL', 'http://localhost:5173');
+    const html = await this.contentService.getPageHtml(segments, webBaseUrl);
     if (!html) throw new NotFoundException('Page not found');
 
     res.header('Content-Type', 'text/html; charset=utf-8');
@@ -113,6 +114,25 @@ export class ContentController {
     const webBaseUrl = this.config.get<string>('WEB_BASE_URL', 'http://localhost:5173');
     const xml = await this.contentService.getSitemapXml(webBaseUrl);
     res.header('Content-Type', 'application/xml; charset=utf-8');
+    res.header('Cache-Control', 'public, max-age=3600');
+    res.send(xml);
+  }
+
+  /**
+   * GET /rss.xml → RSS 2.0 feed of all content pages.
+   *
+   * Feed discovery: the SPA injects a <link rel="alternate"> client-side
+   * pointing here, so feed readers can find the feed from any page.
+   * The server-rendered /pages/* HTML could also include it, but the SPA
+   * is the primary user-facing surface.
+   */
+  @Get('rss.xml')
+  @ApiOperation({ summary: 'RSS 2.0 feed of all content pages' })
+  @ApiResponse({ status: 200, description: 'RSS feed', content: { 'application/rss+xml': {} } })
+  async getRss(@Res() res: Response): Promise<void> {
+    const webBaseUrl = this.config.get<string>('WEB_BASE_URL', 'http://localhost:5173');
+    const xml = await this.contentService.getRssXml(webBaseUrl);
+    res.header('Content-Type', 'application/rss+xml; charset=utf-8');
     res.header('Cache-Control', 'public, max-age=3600');
     res.send(xml);
   }

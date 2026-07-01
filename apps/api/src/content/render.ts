@@ -8,9 +8,13 @@
  * maintained.  Why sanitize-html on top: marketing staff control the
  * content, so we must strip any dangerous markup even though the markdown
  * renderer itself doesn't output it by default.
+ *
+ * Front-matter (gray-matter) is parsed before rendering so marketing can
+ * set date, author, description and tags in YAML at the top of index.md.
  */
 import MarkdownIt from 'markdown-it';
 import sanitizeHtml from 'sanitize-html';
+import matter from 'gray-matter';
 
 const md = new MarkdownIt({
   html: false,      // don't allow raw HTML in markdown source
@@ -22,9 +26,21 @@ export interface RenderedPage {
   title: string;
   description: string;
   html: string;
+  date?: string;
+  author?: string;
+  tags?: string[];
+  readingTime: number;
 }
 
-export function renderMarkdown(markdown: string): RenderedPage {
+export function renderMarkdown(source: string): RenderedPage {
+  // Strip front-matter (YAML between --- delimiters) before parsing.
+  // gray-matter returns `data` (the YAML object) and `content` (the body).
+  const { data, content: markdown } = matter(source);
+
+  // Reading time: count words in the body text (average reader = 200 wpm).
+  const wordCount = markdown.trim().split(/\s+/).filter(Boolean).length;
+  const readingTime = Math.max(1, Math.round(wordCount / 200));
+
   // Parse the token stream once; both title extraction and rendering use it.
   // Using the parsed tree rather than a regex avoids:
   //   • picking up # lines inside fenced code blocks
@@ -47,20 +63,22 @@ export function renderMarkdown(markdown: string): RenderedPage {
     }
   }
 
-  // Extract description from the first non-heading paragraph.
-  let description = '';
-  for (let i = 0; i < tokens.length; i++) {
-    if (tokens[i].type === 'paragraph_open') {
-      const inline = tokens[i + 1];
-      if (inline?.type === 'inline' && inline.children) {
-        const text = inline.children
-          .filter((t) => t.type === 'text' || t.type === 'code_inline')
-          .map((t) => t.content)
-          .join('')
-          .trim();
-        if (text) {
-          description = text.length > 160 ? text.slice(0, 157) + '…' : text;
-          break;
+  // Description: prefer front-matter field; fall back to first paragraph.
+  let description: string = typeof data.description === 'string' ? data.description : '';
+  if (!description) {
+    for (let i = 0; i < tokens.length; i++) {
+      if (tokens[i].type === 'paragraph_open') {
+        const inline = tokens[i + 1];
+        if (inline?.type === 'inline' && inline.children) {
+          const text = inline.children
+            .filter((t) => t.type === 'text' || t.type === 'code_inline')
+            .map((t) => t.content)
+            .join('')
+            .trim();
+          if (text) {
+            description = text.length > 160 ? text.slice(0, 157) + '…' : text;
+            break;
+          }
         }
       }
     }
@@ -100,5 +118,19 @@ export function renderMarkdown(markdown: string): RenderedPage {
     },
   });
 
-  return { title, description, html };
+  const date: string | undefined =
+    data.date instanceof Date
+      ? data.date.toISOString().slice(0, 10)
+      : typeof data.date === 'string'
+        ? data.date
+        : undefined;
+
+  const author: string | undefined =
+    typeof data.author === 'string' ? data.author : undefined;
+
+  const tags: string[] | undefined = Array.isArray(data.tags)
+    ? data.tags.map(String)
+    : undefined;
+
+  return { title, description, html, date, author, tags, readingTime };
 }

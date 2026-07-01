@@ -1,2 +1,12 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/*
+ * Class-based dark mode so the ThemeToggle button can switch the theme
+ * independently of prefers-color-scheme.  The inline script in index.html
+ * reads localStorage.theme (or falls back to the OS preference) and adds
+ * the .dark class to <html> before first paint — no flash.
+ *
+ * @custom-variant dark is the Tailwind v4 equivalent of darkMode: 'class'.
+ */
+@custom-variant dark (&:where(.dark, .dark *));

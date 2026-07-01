@@ -70,6 +70,8 @@ See [docs/CONTENT-AUTHORING.md](docs/CONTENT-AUTHORING.md) for the full guide.
 | `GET` | `/api/content/:slug*` | Page content as JSON `{ slug, title, html }` |
 | `GET` | `/pages/:slug*` | Full HTML page (template + rendered markdown) |
 | `GET` | `/api/pages` | List all available pages |
+| `GET` | `/sitemap.xml` | XML sitemap for crawlers |
+| `GET` | `/rss.xml` | RSS 2.0 feed of all content pages |
 | `GET` | `/healthz` | Health check |
 | `GET` | `/docs` | Swagger / OpenAPI |
 
@@ -89,7 +91,7 @@ cd apps/web && npm test
 npm run test:e2e
 ```
 
-**Test count:** 28 unit tests + 13 integration tests + 4 component tests = **45 tests total** (+ Playwright E2E)
+**Test count:** 38 unit tests + 16 integration tests + 6 component tests = **60 tests total** (+ Playwright E2E)
 
 The three brief-required tests are in `apps/api/test/content.e2e-spec.ts`:
 - `GET /pages/test-page → 200` for a valid URL

@@ -69,6 +69,32 @@ content/blog/2025/june/company-update/index.md  →  /blog/2025/june/company-upd
 
 Intermediate folders without an `index.md` are not pages — they just group sub-pages.
 
+## Optional front-matter
+
+You can add YAML front-matter at the very top of any `index.md` to provide metadata that enriches the page. The front-matter block is surrounded by `---` delimiters:
+
+```markdown
+---
+date: 2026-06-01
+author: Jane Smith
+description: A short one-sentence summary shown in link previews and RSS feeds (max ~160 chars).
+tags: [company, update, finance]
+---
+
+# Page Title
+
+Page content starts here...
+```
+
+| Field | Description | Example |
+|---|---|---|
+| `date` | Publication date (ISO 8601) — shown on the page and used to sort the RSS feed | `2026-06-01` |
+| `author` | Author name — shown on the page | `Jane Smith` |
+| `description` | Short summary for SEO meta and RSS `<description>` — overrides the auto-extracted first paragraph | `A short summary.` |
+| `tags` | Topic tags (not rendered on page yet, but stored for future use) | `[company, update]` |
+
+All fields are optional. Pages without front-matter work exactly as before.
+
 ## Important notes
 
 - The folder name becomes the URL, so use lowercase letters, numbers, and hyphens. No spaces or special characters.

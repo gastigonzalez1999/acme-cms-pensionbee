@@ -33,7 +33,9 @@ describe('ContentPage', () => {
         HttpResponse.json({
           slug: 'about-page',
           title: 'About Us',
+          description: 'Learn about Acme Co.',
           html: '<h1>About Us</h1><p>We make widgets.</p>',
+          readingTime: 1,
         }),
       ),
     );
@@ -71,7 +73,9 @@ describe('ContentPage', () => {
         HttpResponse.json({
           slug: 'blog/june/update',
           title: 'June Update',
+          description: 'Monthly update.',
           html: '<h1>June Update</h1>',
+          readingTime: 1,
         }),
       ),
     );
@@ -100,5 +104,55 @@ describe('ContentPage', () => {
         screen.getByText("Couldn't load this page. The API may be unavailable."),
       ).toBeInTheDocument(),
     );
+  });
+
+  it('renders the author · date · reading time meta line when present', async () => {
+    server.use(
+      http.get('/api/content/blog/post', () =>
+        HttpResponse.json({
+          slug: 'blog/post',
+          title: 'A Post',
+          description: 'A test post.',
+          html: '<h1>A Post</h1><p>Content.</p>',
+          date: '2026-06-01',
+          author: 'Jane Doe',
+          readingTime: 2,
+        }),
+      ),
+    );
+
+    renderWithRouter('/blog/post');
+
+    await waitFor(() =>
+      expect(screen.queryByLabelText('Loading content')).not.toBeInTheDocument(),
+    );
+
+    // The meta line should contain author, formatted date, and reading time
+    const meta = screen.getByText((text) => text.includes('Jane Doe') && text.includes('2 min read'));
+    expect(meta).toBeInTheDocument();
+  });
+
+  it('shows only reading time when no author or date is provided', async () => {
+    server.use(
+      http.get('/api/content/plain', () =>
+        HttpResponse.json({
+          slug: 'plain',
+          title: 'Plain Page',
+          description: 'No metadata.',
+          html: '<h1>Plain Page</h1><p>Content.</p>',
+          readingTime: 1,
+        }),
+      ),
+    );
+
+    renderWithRouter('/plain');
+
+    await waitFor(() =>
+      expect(screen.queryByLabelText('Loading content')).not.toBeInTheDocument(),
+    );
+
+    // readingTime is always rendered; no author or date text should be present
+    expect(screen.getByText('1 min read')).toBeInTheDocument();
+    expect(screen.queryByText(/Jane Doe/)).not.toBeInTheDocument();
   });
 });

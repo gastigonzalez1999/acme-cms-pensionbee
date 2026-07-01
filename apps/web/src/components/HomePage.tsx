@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { setPageMeta } from '../lib/seo';
 
 interface PageDescriptor {
   slug: string;
@@ -21,7 +22,20 @@ export default function HomePage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    document.title = 'Acme Co. — Content Hub';
+    setPageMeta({
+      title: 'Acme Co. — Content Hub',
+      description: 'Acme Co. marketing content hub — browse all pages.',
+      url: window.location.origin + '/',
+      image: `${window.location.origin}/og-image.png`,
+      type: 'website',
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'Acme Co. Content Hub',
+        url: window.location.origin + '/',
+      },
+      feedHref: `${API_BASE}/rss.xml`,
+    });
     fetch(`${API_BASE}/api/pages`)
       .then(async (res) => {
         if (!res.ok) throw new Error();

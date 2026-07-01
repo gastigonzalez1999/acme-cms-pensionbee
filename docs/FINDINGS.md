@@ -130,3 +130,29 @@ Render's free tier spins down after ~15 minutes of inactivity. The first request
 `COPY content/ ./content/` means adding a new marketing page requires a container rebuild and redeploy — the "drop a folder, no restart" claim holds only in local dev (where `content/` is a live directory on disk).
 
 **Documented, not fixed:** The `ContentSource` interface exists precisely to make this swappable. The next step is a `CmsContentSource` or `S3ContentSource` that reads from an external store — the controller and service need zero changes. For this assessment scope, baking content into the image is simpler and more predictable than a mounted volume or external store.
+
+---
+
+### Search functionality — deliberately omitted
+
+**Why not built:** The app currently has 4 content pages. A full-text search implementation (client-side Fuse.js, a search index endpoint, or an Algolia/Typesense integration) would be engineering infrastructure for a problem that doesn't exist at this scale. It reads as gold-plating.
+
+**Design when it matters:** A `GET /api/search?q=...` endpoint in the API that does case-insensitive substring matching against `getPage()` results for a small corpus; or a dedicated search index (`ContentSource` variant that pre-indexes on startup) for larger content trees. The `ContentSource` abstraction means this slot in the module graph is already defined.
+
+---
+
+### RSS feed, reading time — "early" at 4 pages
+
+**Where:** `apps/api/src/content/content.service.ts:getRssXml`, `render.ts:readingTime`
+
+RSS feeds are meaningful when content is published regularly and readers want to subscribe. At 4 pages with no publication cadence, it's infrastructure ahead of the need. Reading time is useful on long articles; short marketing blurbs (~50 words) show "1 min read" which adds noise.
+
+**Why built anyway:** (a) the blog section explicitly signals intent to grow; (b) RSS is a standard web citizen feature with near-zero implementation cost (hand-built XML, no dependency); (c) reading time adds zero runtime cost and creates the ground for future longer-form content. **Defensible in interview:** we built the *capability* (front-matter parsing, the RSS endpoint) to match where the content is headed, not where it is today.
+
+---
+
+### Dark-mode toggle: no toggle before this sprint
+
+**Where:** `apps/web/src/components/Layout.tsx`, `apps/web/src/index.css`
+
+Dark mode was previously `prefers-color-scheme` only (no user toggle). Added a class-based toggle with `localStorage` persistence as part of the content-platform polish sprint (2026-07-01). Interview answer if asked: "started with the system default, which is correct for an MVP; added the toggle when we were rounding out the content-platform feature set."
