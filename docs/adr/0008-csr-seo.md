@@ -1,7 +1,7 @@
 # ADR 0008: CSR/SEO tradeoff and resolution
 
 **Status:** Accepted  
-**Date:** 2025
+**Date:** 2026-06
 
 ## Context
 

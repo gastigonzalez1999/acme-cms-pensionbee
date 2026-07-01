@@ -1,7 +1,7 @@
 # ADR 0003: markdown-it + sanitize-html for rendering
 
 **Status:** Accepted  
-**Date:** 2025
+**Date:** 2026-06
 
 ## Context
 

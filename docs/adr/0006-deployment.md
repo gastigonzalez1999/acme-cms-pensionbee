@@ -1,7 +1,7 @@
 # ADR 0006: Split-host deployment (Vercel SPA + Render API)
 
 **Status:** Accepted  
-**Date:** 2025
+**Date:** 2026-06
 
 ## Context
 

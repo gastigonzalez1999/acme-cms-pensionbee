@@ -1,7 +1,7 @@
 # ADR 0005: ContentSource interface as a DI abstraction
 
 **Status:** Accepted  
-**Date:** 2025
+**Date:** 2026-06
 
 ## Context
 

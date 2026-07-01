@@ -1,7 +1,7 @@
 # ADR 0002: NestJS as the backend framework
 
 **Status:** Accepted  
-**Date:** 2025
+**Date:** 2026-06
 
 ## Context
 

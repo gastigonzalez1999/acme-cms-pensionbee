@@ -1,7 +1,7 @@
 # ADR 0004: TypeScript
 
 **Status:** Accepted  
-**Date:** 2025
+**Date:** 2026-06
 
 ## Context
 

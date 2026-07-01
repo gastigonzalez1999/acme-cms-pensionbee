@@ -1,7 +1,7 @@
 # ADR 0001: Decoupled API + SPA architecture
 
 **Status:** Accepted  
-**Date:** 2025
+**Date:** 2026-06
 
 ## Context
 
