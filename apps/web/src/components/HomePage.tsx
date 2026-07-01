@@ -126,7 +126,7 @@ export default function HomePage() {
           <Button variant="primary" iconTrailing="arrow-right" onClick={() => navigate(featured.path)}>
             Read the latest
           </Button>
-          <a href={`${API_BASE}/rss.xml`} style={{ textDecoration: 'none' }}>
+          <a href={`${API_BASE}/rss.xml`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
             <Button variant="secondary" icon="rss">Subscribe</Button>
           </a>
         </div>

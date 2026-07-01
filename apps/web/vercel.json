@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/rss.xml", "destination": "https://acme-cms-api.onrender.com/rss.xml" },
+    { "source": "/sitemap.xml", "destination": "https://acme-cms-api.onrender.com/sitemap.xml" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [

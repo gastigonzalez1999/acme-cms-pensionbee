@@ -157,3 +157,13 @@ Dark mode was previously `prefers-color-scheme` only (no user toggle). Added a c
 The editorial type trio (Newsreader, Public Sans, IBM Plex Mono) loads via a Google Fonts `@import`, an external network dependency and a render-blocking request on first paint.
 
 **Why deferred:** Acceptable for a demo/assessment; the fonts have generous fallback stacks (`Georgia`, `system-ui`, `Menlo`) so the page is never unusably unstyled if the CDN is unreachable. **Fix for production:** self-host the `.woff2` binaries under `apps/web/public/fonts/` and replace the `@import` with local `@font-face` rules — the tokens file's own header comment already documents this as the intended next step.
+
+---
+
+### `apps/web/vercel.json` hardcodes the Render API URL for `/rss.xml` and `/sitemap.xml`
+
+**Where:** `apps/web/vercel.json`
+
+Content can embed relative links to API-only routes (e.g. `content/blog/index.md` links to `/rss.xml`) — on the split-host deployment those need to be proxied through the SPA's origin to the API's origin, or they 404. Vercel's `rewrites` are static JSON with no env-var interpolation, so the Render URL is hardcoded as the rewrite destination rather than read from `VITE_API_BASE_URL`.
+
+**Why accepted:** Same tradeoff already made for the live URLs quoted in the README. If the API's Render URL ever changes, this file needs a one-line update alongside the README and Vercel's `VITE_API_BASE_URL` env var.

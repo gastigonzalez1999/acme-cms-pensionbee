@@ -22,6 +22,16 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
       },
+      // Content can embed relative links to these (e.g. content/blog/index.md
+      // links to /rss.xml) — proxy them too so those links work in dev.
+      '/rss.xml': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/sitemap.xml': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
     },
   },
 });

@@ -110,7 +110,6 @@ export default function Layout({ children }: LayoutProps) {
               <FooterLink to="/">Home</FooterLink>
               <FooterLink to="/blog">Blog</FooterLink>
               <FooterLink to="/jobs">Careers</FooterLink>
-              <FooterLink href="https://acme.com">acme.com ↗</FooterLink>
             </nav>
           </div>
           <p style={{ marginTop: 'var(--space-10)', fontFamily: 'var(--font-mono)', fontSize: 'var(--text-2xs)', color: 'var(--text-subtle)' }}>
