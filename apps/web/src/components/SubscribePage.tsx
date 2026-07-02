@@ -9,11 +9,11 @@ import { Button } from '../design-system/components/core/Button';
  * The RSS feed itself (GET /rss.xml) is real and fully working, but no
  * browser has a built-in feed reader anymore — linking straight to the raw
  * XML reads as broken to anyone without a reader extension installed. This
- * page is the human-facing landing spot: explain what the feed is, offer a
- * copyable URL, and let people who know what they want open the raw feed
- * directly. /rss.xml is proxied through this app's own origin (see
- * vite.config.ts and vercel.json), so the URL shown here works the same in
- * dev and production.
+ * page is the human-facing landing spot: explain what the feed is and offer
+ * a copyable URL — no link to the raw XML itself, since that's the exact
+ * experience this page exists to avoid. /rss.xml is proxied through this
+ * app's own origin (see vite.config.ts and vercel.json), so the URL shown
+ * here works the same in dev and production.
  */
 export default function SubscribePage() {
   const navigate = useNavigate();
@@ -68,10 +68,7 @@ export default function SubscribePage() {
         </Button>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--space-3)', marginTop: 'var(--space-6)', flexWrap: 'wrap' }}>
-        <a href={feedUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-          <Button variant="secondary" icon="rss">View raw feed</Button>
-        </a>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--space-6)' }}>
         <Button variant="ghost" icon="arrow-left" onClick={() => navigate('/')}>Back to all content</Button>
       </div>
     </div>
